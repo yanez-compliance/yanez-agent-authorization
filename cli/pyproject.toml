@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yanez-authz-cli"
+version = "0.1.0"
+description = "CLI adapter for Yanez agent authorization (thin wrapper on the Python SDK)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+]
+dependencies = ["yanez-agent-authorization>=0.1.0,<0.2"]
+
+[project.urls]
+Homepage = "https://github.com/yanez-compliance/yanez-agent-authorization"
+Repository = "https://github.com/yanez-compliance/yanez-agent-authorization"
+Issues = "https://github.com/yanez-compliance/yanez-agent-authorization/issues"
+
+[project.scripts]
+yanez-authz = "yanez_authz_cli.main:main"
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yanez_authz_cli"]

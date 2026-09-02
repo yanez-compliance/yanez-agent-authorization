@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yanez-agent-authorization"
+version = "0.1.0"
+description = "Yanez agent authorization: request human approval, verify signed receipts."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+]
+dependencies = [
+    "httpx>=0.27,<1",
+    "PyJWT>=2.8,<3",
+    "cryptography>=42",
+]
+
+[project.urls]
+Homepage = "https://github.com/yanez-compliance/yanez-agent-authorization"
+Repository = "https://github.com/yanez-compliance/yanez-agent-authorization"
+Issues = "https://github.com/yanez-compliance/yanez-agent-authorization/issues"
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yanez_authz"]

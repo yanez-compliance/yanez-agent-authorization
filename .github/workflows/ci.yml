@@ -1,0 +1,47 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e packages/python[test] -e cli -e integrations/mcp
+      - run: pytest packages/python/tests cli/tests integrations/mcp/tests -q
+      - name: fixtures are canonical
+        run: |
+          python conformance/generate_fixtures.py
+          git diff --exit-code conformance/fixtures
+
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+        working-directory: packages/typescript
+      - run: npm test
+        working-directory: packages/typescript
+
+  openapi-artifact:
+    # The contract is exported from the Yanez server repository, never hand-edited
+    # here. This job only proves the checked-in artifact and SOURCE.json parse;
+    # re-export happens against a tagged server release.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - run: python -c "import yaml, json; yaml.safe_load(open('openapi/agent-authorization.openapi.yaml')); json.load(open('openapi/SOURCE.json'))"

@@ -1,0 +1,83 @@
+{
+  "cases": {
+    "consent_bound_active": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9LCJ5YW5lel9jb25zZW50X25vdF9hZnRlciI6MTc2NzIyNTkwMH0.58wGds0uI_M982AnWgRLOmz48PDY1CUAk1pR3FtBoJv_bBuwoPobwfAhs_wVNPZsj1k5bGiOqRqL-PvgokDeCg",
+      "ok": true
+    },
+    "consent_bound_expired": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9LCJ5YW5lel9jb25zZW50X25vdF9hZnRlciI6MTc2NzIyNTkwMH0.58wGds0uI_M982AnWgRLOmz48PDY1CUAk1pR3FtBoJv_bBuwoPobwfAhs_wVNPZsj1k5bGiOqRqL-PvgokDeCg",
+      "error": "consent_policy",
+      "now": 1767225901,
+      "ok": false
+    },
+    "missing_agent_key_id": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfZGVjaXNpb24iOiJhcHByb3ZlZCIsInlhbmV6X2RlY2lkZWRfYXQiOjE3NjcyMjU2MDAsInlhbmV6X21hdGNoX292ZXJsYXAiOjIxMywieWFuZXpfdGVybXMiOnsiYWN0aW9uIjoicHVyY2hhc2UiLCJzdW1tYXJ5IjoiQnV5IHJ1bm5pbmcgc2hvZXMgZm9yICQxODAgYXQgRXhhbXBsZSBTdG9yZSIsIm1lcmNoYW50IjoiRXhhbXBsZSBTdG9yZSIsImFtb3VudCI6IjE4MC4wMCIsImN1cnJlbmN5IjoiVVNEIn19.mjQzpfuHLbNeleTxTcWBV1y44aBw9l_Cjax4ynzezQaR6JsEci6LyXGO_ddv1JE6rJMRqr3ZGWGRvGF_myDeAA",
+      "error": "verification",
+      "ok": false
+    },
+    "not_approved": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoicmVqZWN0ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.gM8kb_PlNgaPLq6CwVe9jsgW8TScTZzA0OUzHxEajnq-GCJGGXC2Vx3rZGuJU6OtUKs_DAvynWdoNWO4a0IgBQ",
+      "error": "verification",
+      "ok": false
+    },
+    "stale": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.S4NJr1D4HaaKp-PX8VFlJP3Ubse4P3jopFeOWTWkEyQU3a4GgigZ_aPm5tFN7cxoS7b4ezidNApb7HXd_o1hDg",
+      "error": "consent_policy",
+      "now": 1769817600,
+      "ok": false
+    },
+    "tampered": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovA3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.S4NJr1D4HaaKp-PX8VFlJP3Ubse4P3jopFeOWTWkEyQU3a4GgigZ_aPm5tFN7cxoS7b4ezidNApb7HXd_o1hDg",
+      "error": "verification",
+      "ok": false
+    },
+    "terms_mismatch": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.S4NJr1D4HaaKp-PX8VFlJP3Ubse4P3jopFeOWTWkEyQU3a4GgigZ_aPm5tFN7cxoS7b4ezidNApb7HXd_o1hDg",
+      "error": "verification",
+      "expected_terms": {
+        "action": "purchase",
+        "amount": "999.00",
+        "currency": "USD",
+        "merchant": "Example Store",
+        "summary": "Buy running shoes for $180 at Example Store"
+      },
+      "ok": false
+    },
+    "unknown_kid": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3JldGlyZWQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.ZZINmIVzVLw-gODOGrUv-TeHsz4UgFCHAQebowfuiOTD8C4h69cmFPLsC6ji2oEjvzy7NyF6O3JI50AzG22sAQ",
+      "error": "verification",
+      "ok": false
+    },
+    "valid": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.S4NJr1D4HaaKp-PX8VFlJP3Ubse4P3jopFeOWTWkEyQU3a4GgigZ_aPm5tFN7cxoS7b4ezidNApb7HXd_o1hDg",
+      "ok": true
+    },
+    "wrong_algorithm": {
+      "artifact": "eyJhbGciOiJIUzI1NiIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.-6l76mit8puiDIrt3Uihv50Ko_ob6XcSN9S--bHbDjI",
+      "error": "verification",
+      "ok": false
+    },
+    "wrong_issuer": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2V2aWwuZXhhbXBsZSIsInN1YiI6ImFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhIiwianRpIjoiYXpyX2MwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwIiwiaWF0IjoxNzY3MjI1NjAwLCJ5YW5lel9hZ2VudF9rZXlfaWQiOiJ5YWtfY29uZm9ybWFuY2UxIiwieWFuZXpfZGVjaXNpb24iOiJhcHByb3ZlZCIsInlhbmV6X2RlY2lkZWRfYXQiOjE3NjcyMjU2MDAsInlhbmV6X21hdGNoX292ZXJsYXAiOjIxMywieWFuZXpfdGVybXMiOnsiYWN0aW9uIjoicHVyY2hhc2UiLCJzdW1tYXJ5IjoiQnV5IHJ1bm5pbmcgc2hvZXMgZm9yICQxODAgYXQgRXhhbXBsZSBTdG9yZSIsIm1lcmNoYW50IjoiRXhhbXBsZSBTdG9yZSIsImFtb3VudCI6IjE4MC4wMCIsImN1cnJlbmN5IjoiVVNEIn19.b7CWUpsCIqRejAfohjI-L4GxehU8P4Ux20lg8QhG-9m9V1nApWLxBOQ1PdU_UwD7Uah5BajgGQkPuhKD4rFHCg",
+      "error": "verification",
+      "ok": false
+    },
+    "wrong_key": {
+      "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.BqUZSoyncpC9jfxMZEfr2PxLQBeiuPoqA0nLL5wY85GcRbSYoyfEHM0Y6lDEKoB3g78FIlG7w5I9HPSAY7RkBg",
+      "error": "verification",
+      "ok": false
+    }
+  },
+  "consent_not_after": 1767225900,
+  "decided_at": 1767225600,
+  "expected_terms": {
+    "action": "purchase",
+    "amount": "180.00",
+    "currency": "USD",
+    "merchant": "Example Store",
+    "summary": "Buy running shoes for $180 at Example Store"
+  },
+  "issuer": "https://yanez.test",
+  "now_fresh": 1767225660,
+  "now_stale": 1769817600
+}

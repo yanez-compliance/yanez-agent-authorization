@@ -1,0 +1,436 @@
+components:
+  schemas:
+    AuthorizationCreateIn:
+      additionalProperties: false
+      properties:
+        decision_window_seconds:
+          default: 900
+          description: How long the user has to decide before the request expires.
+          maximum: 3600
+          minimum: 60
+          type: integer
+        intent_expires_at:
+          description: 'Optional user-consent bound: the point past which a relying
+            party must refuse to ACT on the approval. It never limits verification,
+            and it must be in the future at creation time.
+
+            '
+          format: date-time
+          type:
+          - string
+          - 'null'
+        terms:
+          description: 'The verbatim terms the user is asked to approve, opaque JSON
+            to the server. terms.action and terms.summary are required non-empty strings;
+            the whole object is capped at 4096 bytes of compact JSON (413 above that).
+            Decimal quantities should be strings ("180.00") so their meaning survives
+            JSON implementations without binary floating-point differences.
+
+            '
+          type: object
+      required:
+      - terms
+      type: object
+    AuthorizationCreateOut:
+      properties:
+        decide_by:
+          description: When the decision window closes.
+          format: date-time
+          type: string
+        request_id:
+          description: Authorization request id (azr_...); also the receipt's jti.
+          type: string
+        status:
+          description: Always pending on a fresh create.
+          enum:
+          - pending
+          - approved
+          - rejected
+          - expired
+          type: string
+      required:
+      - request_id
+      - status
+      - decide_by
+      type: object
+    AuthorizationOut:
+      properties:
+        artifact:
+          description: 'Compact EdDSA JWS receipt, present only when status is approved.
+            Its claims: iss (exact Yanez issuer), sub (approving YID), jti (request
+            id, the replay identifier), iat (NumericDate, equals decision time), yanez_agent_key_id
+            (non-secret id of the requesting agent key), yanez_decision (always "approved"),
+            yanez_decided_at (NumericDate), yanez_match_overlap (non-negative integer
+            of issuer evidence — verifiers must not assume its maximum or a threshold),
+            yanez_terms (verbatim approved terms), and optional yanez_consent_not_after
+            (NumericDate bound on acting). There is no exp: the receipt is durable
+            evidence of a past approval, not an expiring capability token.
+
+            '
+          type:
+          - string
+          - 'null'
+        consent_not_after:
+          description: 'The user''s bound on acting, echoed for the agent. The receipt
+            itself never stops verifying.
+
+            '
+          format: date-time
+          type:
+          - string
+          - 'null'
+        decided_at:
+          format: date-time
+          type:
+          - string
+          - 'null'
+        request_id:
+          type: string
+        status:
+          enum:
+          - pending
+          - approved
+          - rejected
+          - expired
+          type: string
+      required:
+      - request_id
+      - status
+      type: object
+    AuthzJwk:
+      description: Flat Ed25519 JWK (no nesting).
+      properties:
+        alg:
+          enum:
+          - EdDSA
+          type: string
+        crv:
+          enum:
+          - Ed25519
+          type: string
+        kid:
+          example: authz_2026_08
+          type: string
+        kty:
+          enum:
+          - OKP
+          type: string
+        x:
+          description: Base64url raw public key bytes.
+          type: string
+      required:
+      - kty
+      - crv
+      - x
+      - kid
+      - alg
+      type: object
+    Error:
+      properties:
+        detail:
+          type: string
+      type: object
+    IntrospectIn:
+      additionalProperties: false
+      properties:
+        artifact:
+          description: The compact JWS receipt. The receipt is the bearer proof.
+          type: string
+        consume:
+          default: false
+          description: 'When true, permanently reserves the receipt''s jti if it is
+            valid, unconsumed, and within its consent bound — single-use enforcement.
+            The action executor owns this call, immediately before executing.
+
+            '
+          type: boolean
+      required:
+      - artifact
+      type: object
+    IntrospectOut:
+      properties:
+        consent_not_after:
+          description: The user's NumericDate bound on acting, when one was set.
+          type:
+          - integer
+          - 'null'
+        consumed_now:
+          description: 'true when this call reserved the jti; false when consumption
+            was refused; null when consume was false.
+
+            '
+          type:
+          - boolean
+          - 'null'
+        decided_at:
+          description: NumericDate of approval. Present on every valid response.
+          type:
+          - integer
+          - 'null'
+        jti:
+          description: Request id / replay identifier. Present on every valid response.
+          type:
+          - string
+          - 'null'
+        reason:
+          description: 'bad_signature comes with valid=false. consent_expired and
+            already_consumed come with valid=true and consumed_now=false — the receipt
+            is genuine but must not be acted on.
+
+            '
+          enum:
+          - bad_signature
+          - consent_expired
+          - already_consumed
+          - null
+          type:
+          - string
+          - 'null'
+        sub:
+          description: Approving YID. Present on every valid response.
+          type:
+          - string
+          - 'null'
+        terms:
+          description: Verbatim approved terms. Present on every valid response.
+          type:
+          - object
+          - 'null'
+        valid:
+          description: 'Whether the Yanez signature and receipt profile are genuine
+            — and nothing else. A consumed or consent-expired receipt stays valid;
+            consumed_now plus consent_not_after answer whether it may be ACTED on.
+
+            '
+          type: boolean
+      required:
+      - valid
+      type: object
+    PublicKeysOut:
+      properties:
+        keys:
+          items:
+            $ref: '#/components/schemas/AuthzJwk'
+          type: array
+      required:
+      - keys
+      type: object
+  securitySchemes:
+    AgentApiKey:
+      bearerFormat: YanezAgentKey
+      description: Show-once yak_ credential created in the YID app.
+      scheme: bearer
+      type: http
+info:
+  description: Agent and relying-party surface of the Yanez authorization service.
+    Exported from the canonical server openapi.yaml; do not edit by hand — rerun openapi/export_subset.py.
+  title: Yanez Agent Authorization
+  version: 1.0.0
+openapi: 3.1.0
+paths:
+  /api/agent/authorizations:
+    post:
+      description: 'An agent asks its owner to approve the supplied terms. The yak_
+        key identifies which YID to ask; it confers no authority of its own, and approval
+        arrives asynchronously through the YID app.
+
+
+        Sending an Idempotency-Key makes the create replay-safe: retrying an ambiguous
+        failure with the same key and body returns the original request (201 plus
+        Idempotency-Replayed: true) instead of prompting the user twice. The reservation
+        is scoped to (agent key, Idempotency-Key) and is permanent for the life of
+        the key.
+
+        '
+      operationId: agentCreateAuthorization
+      parameters:
+      - description: 'Opaque printable-ASCII retry token, chosen once per logical
+          create and reused verbatim on every retry of it. Optional, but strongly
+          recommended for any client that retries.
+
+
+          Generate it from randomness, such as a UUID — never from the request content.
+          The key identifies the operation, not the body: a key derived by hashing
+          the terms makes two genuine identical purchases collapse into one, replaying
+          the first request and returning its request_id without ever prompting the
+          user. Reservations are permanent, so a content-derived key still replays
+          months later.
+
+          '
+        in: header
+        name: Idempotency-Key
+        required: false
+        schema:
+          maxLength: 128
+          minLength: 1
+          pattern: ^[ -~]{1,128}$
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizationCreateIn'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizationCreateOut'
+          description: 'The request, freshly created or replayed. A replay carries
+            Idempotency-Replayed: true and reflects the request''s current status.
+
+            '
+          headers:
+            Idempotency-Replayed:
+              description: '"true" when this response replays an earlier create.'
+              schema:
+                type: string
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Invalid terms (missing action/summary), intent_expires_at
+            in the past, or a malformed Idempotency-Key.
+
+            '
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Missing, malformed, or revoked agent key.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Idempotency key reused with a different request body.
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Terms exceed 4096 bytes of compact JSON.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Schema violation, such as decision_window_seconds out of 60-3600.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Hourly request limit or live-pending cap reached. Wait; do
+            not create replacement requests in a loop. A same-body idempotent replay
+            is answered before these limits and never 429s.
+
+            '
+      security:
+      - AgentApiKey: []
+      summary: Ask the key's owner to approve specific terms
+  /api/agent/authorizations/{request_id}:
+    get:
+      description: 'Poll, or long-poll for up to wait seconds, for the decision. Readable
+        only by the key that created the request. approved responses carry the signed
+        artifact; pending, rejected, and expired responses never do.
+
+        '
+      operationId: agentGetAuthorization
+      parameters:
+      - in: path
+        name: request_id
+        required: true
+        schema:
+          type: string
+      - description: Long-poll duration in seconds.
+        in: query
+        name: wait
+        required: false
+        schema:
+          default: 0
+          maximum: 25
+          minimum: 0
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizationOut'
+          description: Current state of the request.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Missing, malformed, or revoked agent key.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Unknown request id — including one created by a different
+            agent key, deliberately indistinguishable.
+
+            '
+      security:
+      - AgentApiKey: []
+      summary: Poll for the user's decision
+  /api/authz/introspect:
+    post:
+      description: 'Unauthenticated: the receipt itself is the bearer proof. Signature
+        and claims are checkable offline with the public keys; single-use enforcement
+        is not, which is why this exists. valid answers only whether the receipt is
+        genuine — consumed_now and consent_not_after answer whether it may be acted
+        on, and every cryptographically valid response (including consent_expired
+        and already_consumed) returns the decoded sub, jti, decided_at, consent_not_after,
+        and terms.
+
+        '
+      operationId: authzIntrospect
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntrospectIn'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectOut'
+          description: 'Verification result. Returned for invalid receipts too (valid=false,
+            reason=bad_signature) — a bad receipt is an answer, not an error.
+
+            '
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Malformed body, such as a missing artifact field.
+      security: []
+      summary: Verify a receipt online, and optionally consume it
+  /api/authz/public-keys:
+    get:
+      description: 'Unauthenticated: a relying party must be able to verify an artifact
+        without holding Yanez credentials, or the artifact is not portable proof.
+        Keys are flat Ed25519 JWKs; select by kid from the receipt''s protected header,
+        and refresh once on an unknown kid before rejecting.
+
+        '
+      operationId: authzPublicKeys
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeysOut'
+          description: Currently accepted signing keys.
+      security: []
+      summary: Fetch the receipt-verification key set

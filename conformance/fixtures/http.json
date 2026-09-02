@@ -1,0 +1,71 @@
+{
+  "create_response": {
+    "decide_by": "2026-01-01T00:15:00Z",
+    "request_id": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "status": "pending"
+  },
+  "introspect_bad_signature": {
+    "reason": "bad_signature",
+    "valid": false
+  },
+  "introspect_first_consume": {
+    "consent_not_after": null,
+    "consumed_now": true,
+    "decided_at": 1767225600,
+    "jti": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "reason": null,
+    "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "terms": {
+      "action": "purchase",
+      "amount": "180.00",
+      "currency": "USD",
+      "merchant": "Example Store",
+      "summary": "Buy running shoes for $180 at Example Store"
+    },
+    "valid": true
+  },
+  "introspect_repeat_consume": {
+    "consent_not_after": null,
+    "consumed_now": false,
+    "decided_at": 1767225600,
+    "jti": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "reason": "already_consumed",
+    "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "terms": {
+      "action": "purchase",
+      "amount": "180.00",
+      "currency": "USD",
+      "merchant": "Example Store",
+      "summary": "Buy running shoes for $180 at Example Store"
+    },
+    "valid": true
+  },
+  "poll_approved": {
+    "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJhbW91bnQiOiIxODAuMDAiLCJjdXJyZW5jeSI6IlVTRCJ9fQ.S4NJr1D4HaaKp-PX8VFlJP3Ubse4P3jopFeOWTWkEyQU3a4GgigZ_aPm5tFN7cxoS7b4ezidNApb7HXd_o1hDg",
+    "consent_not_after": null,
+    "decided_at": "2026-01-01T00:00:00Z",
+    "request_id": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "status": "approved"
+  },
+  "poll_expired": {
+    "artifact": null,
+    "consent_not_after": null,
+    "decided_at": null,
+    "request_id": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "status": "expired"
+  },
+  "poll_pending": {
+    "artifact": null,
+    "consent_not_after": null,
+    "decided_at": null,
+    "request_id": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "status": "pending"
+  },
+  "poll_rejected": {
+    "artifact": null,
+    "consent_not_after": null,
+    "decided_at": "2026-01-01T00:04:00Z",
+    "request_id": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "status": "rejected"
+  }
+}
