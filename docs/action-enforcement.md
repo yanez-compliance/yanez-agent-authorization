@@ -1,3 +1,8 @@
+---
+title: Action enforcement
+description: The contract for the boundary that turns a verified receipt into an action.
+---
+
 # Action enforcement
 
 The enforcement boundary is the sensitive action executor — not the agent, not a

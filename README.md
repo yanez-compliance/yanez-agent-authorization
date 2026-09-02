@@ -17,7 +17,10 @@ The HTTP/OpenAPI contract is the source of truth; everything else here is an ada
 | Conformance fixtures | `conformance/fixtures/` | Both SDKs must reach the same verdicts |
 | Examples | `examples/` | One small runnable example per integration path |
 
-Start with `docs/integration-options.md` to pick a path, then the matching quickstart.
+**Documentation: <https://yanez-compliance.github.io/yanez-agent-authorization/>**
+
+Start with [Choosing an integration path](docs/integration-options.md) to pick a path,
+then the matching quickstart.
 
 ## Install
 
@@ -35,8 +38,8 @@ from a checkout with the commands under Development.
 
 A receipt authorizes nothing by itself. The **action executor** must verify the
 signature, compare the signed terms with the proposed action by deep JSON equality,
-apply its own freshness policy, and consume single-use receipts. `docs/action-enforcement.md`
-is the contract for that boundary.
+apply its own freshness policy, and consume single-use receipts.
+[Action enforcement](docs/action-enforcement.md) is the contract for that boundary.
 
 ## Status
 

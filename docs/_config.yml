@@ -1,0 +1,41 @@
+title: Yanez Agent Authorization
+description: Verifiable human approval for sensitive AI agent actions.
+url: https://yanez-compliance.github.io
+baseurl: /yanez-agent-authorization
+github_repo: https://github.com/yanez-compliance/yanez-agent-authorization
+
+permalink: pretty
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+plugins:
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: false
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+nav:
+  - section: Getting started
+    items:
+      - title: Overview
+        url: /
+      - title: Choosing an integration path
+        url: /integration-options/
+      - title: HTTP quickstart
+        url: /http-quickstart/
+  - section: Concepts
+    items:
+      - title: Terms and receipts
+        url: /terms-and-receipts/
+      - title: Action enforcement
+        url: /action-enforcement/

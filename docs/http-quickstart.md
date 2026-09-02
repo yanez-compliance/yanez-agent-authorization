@@ -1,6 +1,12 @@
+---
+title: HTTP quickstart
+description: Create, poll, verify, and consume an authorization over the four HTTP routes.
+---
+
 # HTTP quickstart
 
-Full schemas: `openapi/agent-authorization.openapi.yaml`. Four routes; the two agent
+Full schemas: [the OpenAPI contract](https://github.com/yanez-compliance/yanez-agent-authorization/blob/main/openapi/agent-authorization.openapi.yaml).
+Four routes; the two agent
 routes take `Authorization: Bearer yak_...`, the two relying-party routes are public.
 
 ## 1. Create a request (agent)
@@ -51,7 +57,7 @@ Flat Ed25519 JWKs. Verify the artifact offline: pin `alg=EdDSA`, select the key 
 header `kid` (refresh on an unknown kid, at most once per 30 s), check your exact
 expected `iss`, compare `yanez_terms` with your expected terms by deep equality, and
 check that `sub` is the YID your records tie to the account being acted on. Claim
-profile and freshness rules: `terms-and-receipts.md`.
+profile and freshness rules: [terms and receipts](terms-and-receipts.md).
 
 ## 4. Consume (action executor, single-use actions)
 

@@ -1,3 +1,8 @@
+---
+title: Terms and receipts
+description: What the human approves, and the claim profile of the signed artifact.
+---
+
 # Terms and receipts
 
 ## Terms
@@ -6,7 +11,7 @@ Opaque JSON to the server; a promise to the human who approves it and the relyin
 party that enforces it. `terms.action` and `terms.summary` are required non-empty
 strings; the whole object is capped at 4 KB compact JSON. Decimal quantities travel as
 strings ("180.00"). Recommended profiles (purchase, disclosure, permission):
-`skills/yanez-authorize/references/terms-guidance.md`.
+[terms guidance](https://github.com/yanez-compliance/yanez-agent-authorization/blob/main/skills/yanez-authorize/references/terms-guidance.md).
 
 If any material field changes after approval — counterparty, resource, amount,
 currency, destination, scope, deadline — the old receipt must not be used. New terms
