@@ -32,7 +32,7 @@ A compact EdDSA JWS, signed by Yanez, readable by its holder (signed, not encryp
 | `yanez_decided_at` | yes | NumericDate of approval |
 | `yanez_match_overlap` | yes | Non-negative integer; issuer evidence about the accepted biometric match. Verifiers must not assume a maximum or threshold |
 | `yanez_terms` | yes | Verbatim approved terms |
-| `yanez_consent_not_after` | no | The user's own bound on when the receipt may be acted on |
+| `yanez_consent_not_after` | no | Bound on when the receipt may be acted on. The agent declares it as `intent_expires_at` at create time, from the user's instruction; the app does not ask the approver to confirm it separately |
 
 There is deliberately **no `exp`**. The receipt is durable evidence of a past approval
 — a dispute or audit arrives years later, and the record must still verify. Three
@@ -40,8 +40,8 @@ separate questions, three separate mechanisms:
 
 1. *Genuine?* Signature + issuer + claim profile. Never changes with time.
 2. *Recent enough for me to act?* Your policy, applied to `yanez_decided_at`.
-3. *Still within the user's own bound, and unspent?* `yanez_consent_not_after` plus
-   introspection with `consume: true`.
+3. *Still within the declared consent bound, and unspent?* `yanez_consent_not_after`
+   plus introspection with `consume: true`.
 
 The receipt is a Yanez assertion that a fresh biometric scan matching the YID approved
 the terms. It is not a cryptographic signature made by the human.

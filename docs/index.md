@@ -6,7 +6,7 @@ description: Let an AI agent request verifiable human approval for a sensitive a
 # Agent Authorization
 
 Let an AI agent request **verifiable human approval** for a sensitive action, and let the
-action's executor verify the signed receipt before anything runs.
+action's executor (the relying party) verify the signed receipt before anything runs.
 
 The HTTP/OpenAPI contract is the source of truth. Every SDK, the CLI, the MCP server, and
 the skill are adapters over that same contract — pick the highest layer your runtime
@@ -14,9 +14,9 @@ supports.
 
 <div class="callout">
   <div class="callout-title">The one rule that matters</div>
-  <p>A receipt authorizes nothing by itself. The <strong>action executor</strong> must verify the
-  signature, compare the signed terms against the proposed action by deep JSON equality, apply
-  its own freshness policy, and consume single-use receipts.</p>
+  <p>A receipt authorizes nothing by itself. The <strong>action executor</strong> (the relying
+  party, not the agent) must verify the signature, compare the signed terms against the proposed
+  action by deep JSON equality, apply its own freshness policy, and consume single-use receipts.</p>
 </div>
 
 ## Start here

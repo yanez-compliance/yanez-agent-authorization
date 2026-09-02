@@ -10,8 +10,10 @@ components:
           minimum: 60
           type: integer
         intent_expires_at:
-          description: 'Optional user-consent bound: the point past which a relying
-            party must refuse to ACT on the approval. It never limits verification,
+          description: 'Optional consent bound: the point past which a relying party
+            must refuse to ACT on the approval. The agent declares it from the user''s
+            instruction; the app does not ask the approver to confirm it separately,
+            so it is not evidence of a deadline the user set. It never limits verification,
             and it must be in the future at creation time.
 
             '
@@ -71,8 +73,8 @@ components:
           - string
           - 'null'
         consent_not_after:
-          description: 'The user''s bound on acting, echoed for the agent. The receipt
-            itself never stops verifying.
+          description: 'The agent-declared consent bound on acting, echoed back. The
+            receipt itself never stops verifying.
 
             '
           format: date-time
@@ -150,7 +152,8 @@ components:
     IntrospectOut:
       properties:
         consent_not_after:
-          description: The user's NumericDate bound on acting, when one was set.
+          description: The agent-declared consent bound as a NumericDate, when one
+            was set.
           type:
           - integer
           - 'null'

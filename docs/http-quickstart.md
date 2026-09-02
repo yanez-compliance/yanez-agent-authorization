@@ -19,16 +19,26 @@ Content-Type: application/json
 
 {"terms": {"action": "purchase", "summary": "Buy running shoes for $180 at Example Store",
            "merchant": "Example Store", "amount": "180.00", "currency": "USD"},
- "decision_window_seconds": 900}
+ "decision_window_seconds": 900,
+ "intent_expires_at": "<RFC 3339 timestamp in the future>"}
 ```
 
 `201` → `{"request_id": "azr_...", "status": "pending", "decide_by": "..."}`.
+
+Two independent windows, both optional. `decision_window_seconds` (60–3600, default
+900) is how long the user has to answer before the request expires; a value outside
+that range is a `422`. `intent_expires_at` is the bound on *acting* that the user gave
+you — "valid for 24 hours" — and must be in the future at creation time. It travels
+into the receipt as `yanez_consent_not_after`, which the action executor enforces.
+Omit it when the user set no deadline.
 
 Always send `Idempotency-Key` (1–128 printable ASCII, generated once per logical
 create, reused verbatim on every retry). A retry of a lost response then returns the
 original request with `Idempotency-Replayed: true` instead of prompting the user twice;
 the same key with a different body returns `409`. Requests without the header are
-accepted but every retry rings the user again.
+accepted but every retry rings the user again. A replay carries the original
+request's current status, so a `201` is `pending` only on a fresh create — read
+`status` rather than assuming it.
 
 **Caution:** Generate the key from randomness (a UUID), never from the request content.
 A key derived by hashing the terms makes two genuine identical purchases collapse into

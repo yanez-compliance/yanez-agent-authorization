@@ -19,8 +19,8 @@ this skill                 tells the model when and how to ask
   consume the receipt (introspection with `consume: true`) immediately before acting.
 - Verification and permission to act are different questions. A receipt verifies
   forever — it is durable evidence. Whether it may be ACTED on now is gated by the
-  relying party's freshness policy (`yanez_decided_at`), the user's own bound
-  (`yanez_consent_not_after`), and single-use consumption.
+  relying party's freshness policy (`yanez_decided_at`), the consent bound the agent
+  declared on the user's behalf (`yanez_consent_not_after`), and single-use consumption.
 - Correct language: "Yanez signed a receipt asserting that a fresh biometric scan
   matching this YID approved these terms." Not "the user signed".
 

@@ -25,7 +25,7 @@ The executor:
 3. Compares `yanez_terms` with the expected terms by deep JSON equality. No ignored
    fields, no wildcards.
 4. Applies its freshness policy: refuse when `now - yanez_decided_at > max_age`.
-5. Honors the user's bound: refuse when `now > yanez_consent_not_after`.
+5. Honors the declared consent bound: refuse when `now > yanez_consent_not_after`.
 6. For single-use actions, consumes immediately before executing:
    `POST /api/authz/introspect {"artifact": ..., "consume": true}` and proceeds only
    on `consumed_now: true`. `reason: "already_consumed"` (still `valid: true`) means
