@@ -19,7 +19,7 @@ dependencies = [
     # major and isolate SDK-specific setup in server.py. 1.10 is the first release
     # with structured tool results.
     "mcp>=1.10,<2",
-    "yanez-agent-authorization>=0.1.0,<0.2",
+    "yanez-agent-authorization>=0.1.0a1,<0.2",
     "httpx>=0.27,<1",  # the --check diagnostic's single GET
 ]
 
