@@ -228,3 +228,29 @@ def test_numeric_date_claims_must_be_integers(jwks, receipts):
     # A JSON null bound is "no bound", the same verdict the TypeScript SDK reaches.
     receipt = verifier.verify(_signed(receipts, yanez_consent_not_after=None), terms, 900, now=now)
     assert receipt.consent_not_after is None
+
+
+def test_profile_rejects_empty_ids_float_iat_and_non_object_terms(jwks, receipts):
+    verifier, _ = _verifier(jwks)
+    terms, now = receipts["expected_terms"], receipts["now_fresh"]
+    decided_at = jwt.decode(receipts["cases"]["valid"]["artifact"],
+                            options={"verify_signature": False})["yanez_decided_at"]
+    for bad in (_signed(receipts, sub=""), _signed(receipts, jti=""),
+                _signed(receipts, yanez_agent_key_id=""),
+                # 1750000000.0 == 1750000000, so equality with decided_at alone would pass.
+                _signed(receipts, iat=float(decided_at))):
+        with pytest.raises(ReceiptVerificationError):
+            verifier.verify(bad, terms, 900, now=now)
+    # Equal to what the caller expects, but not an object: rejected on shape, not on terms.
+    with pytest.raises(ReceiptVerificationError, match="must be an object"):
+        verifier.verify(_signed(receipts, yanez_terms=["x"]), ["x"], 900, now=now)
+
+
+def test_jwk_without_eddsa_alg_is_not_a_usable_key(jwks, receipts):
+    good = jwks["keys"][0]
+    artifact, terms, now = (receipts["cases"]["valid"]["artifact"],
+                            receipts["expected_terms"], receipts["now_fresh"])
+    for bad in ({k: v for k, v in good.items() if k != "alg"}, {**good, "alg": "RS256"}):
+        verifier, _ = _verifier({"keys": [bad]})
+        with pytest.raises(ReceiptVerificationError):
+            verifier.verify(artifact, terms, 900, now=now)

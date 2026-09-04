@@ -137,7 +137,11 @@ test("null or non-string identity claims are rejected", async () => {
   await assert.rejects(verify({ yanez_agent_key_id: null }),
     { name: "ReceiptVerificationError", message: "missing claim yanez_agent_key_id" });
   await assert.rejects(verify({ sub: 12345 }),
-    { name: "ReceiptVerificationError", message: "claim sub must be a string" });
+    { name: "ReceiptVerificationError", message: "claim sub must be a non-empty string" });
+  await assert.rejects(verify({ jti: "" }),
+    { name: "ReceiptVerificationError", message: "claim jti must be a non-empty string" });
+  await assert.rejects(verify({ yanez_terms: ["x"] }),
+    { name: "ReceiptVerificationError", message: "yanez_terms must be an object" });
 });
 
 test("non-integer NumericDate claims are rejected, not cast", async () => {
@@ -148,7 +152,24 @@ test("non-integer NumericDate claims are rejected, not cast", async () => {
   await assert.rejects(verify({ yanez_decided_at: "x" }),
     { name: "ReceiptVerificationError",
       message: "claim yanez_decided_at must be an integer NumericDate" });
+  // jose already refuses a non-number iat; a fractional one is ours to reject.
+  await assert.rejects(verify({ iat: receipts.decided_at + 0.5 }),
+    { name: "ReceiptVerificationError", message: "claim iat must be an integer NumericDate" });
   assert.strictEqual((await verify({ yanez_consent_not_after: null })).consentNotAfter, undefined);
+});
+
+test("a JWK without alg EdDSA is not a usable key", async () => {
+  const c = receipts.cases.valid;
+  const noAlg = { ...jwks.keys[0] };
+  delete noAlg.alg;
+  for (const jwk of [noAlg, { ...jwks.keys[0], alg: "RS256" }]) {
+    const verifier = new ReceiptVerifier(BASE, ISSUER, {
+      fetch: async () => jsonResponse(200, { keys: [jwk] }),
+    });
+    await assert.rejects(
+      verifier.verify(c.artifact, receipts.expected_terms, 900, { now: receipts.now_fresh }),
+      ReceiptVerificationError);
+  }
 });
 
 test("authorizeAction requires a confirmed consumption", async () => {

@@ -93,7 +93,8 @@ export class ReceiptVerifier {
     }
     const keys = new Map<string, CryptoKey>();
     for (const jwk of data.keys) {
-      if (jwk?.kty === "OKP" && jwk.crv === "Ed25519" && typeof jwk.kid === "string") {
+      if (jwk?.kty === "OKP" && jwk.crv === "Ed25519" && jwk.alg === "EdDSA"
+          && typeof jwk.kid === "string") {
         try {
           // importJWK returns a CryptoKey for asymmetric JWKs; Uint8Array only for oct.
           const key = (await importJWK(
@@ -173,12 +174,12 @@ export class ReceiptVerifier {
       if (claims[name] == null) throw new ReceiptVerificationError(`missing claim ${name}`);
     }
     for (const name of STRING_CLAIMS) {
-      if (typeof claims[name] !== "string") {
-        throw new ReceiptVerificationError(`claim ${name} must be a string`);
+      if (typeof claims[name] !== "string" || claims[name] === "") {
+        throw new ReceiptVerificationError(`claim ${name} must be a non-empty string`);
       }
     }
     // Validated, never cast: a signed "not-a-date" would otherwise compare as false and pass.
-    for (const name of ["yanez_decided_at", "yanez_consent_not_after"] as const) {
+    for (const name of ["iat", "yanez_decided_at", "yanez_consent_not_after"] as const) {
       if (claims[name] != null && !Number.isInteger(claims[name])) {
         throw new ReceiptVerificationError(`claim ${name} must be an integer NumericDate`);
       }
@@ -201,6 +202,10 @@ export class ReceiptVerifier {
     // policy at signing time, not part of this public contract.
     if (typeof overlap !== "number" || !Number.isInteger(overlap) || overlap < 0) {
       throw new ReceiptVerificationError("yanez_match_overlap must be a non-negative integer");
+    }
+    const terms = claims.yanez_terms;
+    if (terms === null || typeof terms !== "object" || Array.isArray(terms)) {
+      throw new ReceiptVerificationError("yanez_terms must be an object");
     }
     if (!isDeepStrictEqual(claims.yanez_terms, expectedTerms)) {
       // Deep equality, no ignored or wildcard fields: changed terms mean a new

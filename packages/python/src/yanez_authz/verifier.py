@@ -29,7 +29,7 @@ _REQUIRED_CLAIMS = ("sub", "jti", "iat", "yanez_agent_key_id", "yanez_decision",
 _STRING_CLAIMS = ("sub", "jti", "yanez_agent_key_id")
 # NumericDate claims the SDK does arithmetic on; a signed string here must be a typed
 # rejection, never a TypeError or a comparison that silently passes.
-_INTEGER_CLAIMS = ("yanez_decided_at", "yanez_consent_not_after")
+_INTEGER_CLAIMS = ("iat", "yanez_decided_at", "yanez_consent_not_after")
 
 
 def _b64url_decode(s: str) -> bytes:
@@ -88,7 +88,8 @@ class ReceiptVerifier:
         keys = {}
         for jwk in entries:
             if not isinstance(jwk, dict) or jwk.get("kty") != "OKP" \
-                    or jwk.get("crv") != "Ed25519" or not jwk.get("kid"):
+                    or jwk.get("crv") != "Ed25519" or jwk.get("alg") != "EdDSA" \
+                    or not jwk.get("kid"):
                 continue
             try:
                 keys[jwk["kid"]] = Ed25519PublicKey.from_public_bytes(
@@ -153,8 +154,8 @@ class ReceiptVerifier:
             if claims.get(name) is None:
                 raise ReceiptVerificationError(f"missing claim {name}")
         for name in _STRING_CLAIMS:
-            if not isinstance(claims[name], str):
-                raise ReceiptVerificationError(f"claim {name} must be a string")
+            if not isinstance(claims[name], str) or not claims[name]:
+                raise ReceiptVerificationError(f"claim {name} must be a non-empty string")
         for name in _INTEGER_CLAIMS:
             value = claims.get(name)
             if value is not None and (isinstance(value, bool) or not isinstance(value, int)):
@@ -173,6 +174,8 @@ class ReceiptVerifier:
         # policy at signing time, not part of this public contract.
         if isinstance(overlap, bool) or not isinstance(overlap, int) or overlap < 0:
             raise ReceiptVerificationError("yanez_match_overlap must be a non-negative integer")
+        if not isinstance(claims["yanez_terms"], dict):
+            raise ReceiptVerificationError("yanez_terms must be an object")
         if not _terms_equal(claims["yanez_terms"], expected_terms):
             # Deep equality, no ignored or wildcard fields: changed terms mean a new
             # authorization, never a reused receipt.
