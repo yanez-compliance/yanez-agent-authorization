@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yanez-agent-authorization"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Yanez agent authorization: request human approval, verify signed receipts."
 readme = "README.md"
 requires-python = ">=3.11"
