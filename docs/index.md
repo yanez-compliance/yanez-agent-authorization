@@ -19,17 +19,53 @@ supports.
   action by deep JSON equality, apply its own freshness policy, and consume single-use receipts.</p>
 </div>
 
+## How it works
+
+```mermaid
+sequenceDiagram
+    participant A as Agent
+    participant Y as Yanez Pulse
+    participant U as User (YID app)
+    participant R as Relying party
+    A->>Y: 1. POST /api/agent/authorizations (yak_ key, terms)
+    Y-->>U: 2. Push notification
+    U->>Y: 3. Approve or reject, gated on biometrics
+    A->>Y: 4. GET /api/agent/authorizations/{id}?wait=25
+    Y-->>A: approved + signed receipt, or rejected / expired
+    A->>R: Proposed action + receipt
+    R->>Y: 5. GET /api/authz/public-keys, POST /api/authz/introspect
+    R->>R: Verify, consume, then act
+```
+
+1. **The agent creates a request.** It sends the exact `terms` to Yanez Pulse with its
+   `yak_` agent API key. The key can ask, not act.
+2. **Yanez Pulse notifies the user.** A push notification reaches the user's device.
+3. **The user decides.** They approve or reject in the YID app, gated on a fresh biometric
+   scan. Approval produces a signed receipt.
+4. **The agent polls for the decision.** It long-polls the request until it is `approved`
+   (with the receipt), `rejected`, or `expired`.
+5. **The relying party checks the receipt.** The action executor verifies the signature
+   offline against Yanez's public keys, compares the signed terms with the proposed action,
+   consumes the receipt when the action is single-use, and only then acts.
+
 ## Start here
 
+Two ways in. Pick one.
+
 <div class="cards">
+  <a class="card" href="{{ '/ai-agents/' | relative_url }}">
+    <div class="card-title">Let an AI agent integrate it</div>
+    <div class="card-body">Paste one prompt into Claude Code, Cursor, Codex, or a chat assistant. It reads llms.txt and wires the integration in.</div>
+  </a>
   <a class="card" href="{{ '/integration-options/' | relative_url }}">
-    <div class="card-title">Choosing an integration path</div>
-    <div class="card-body">Four layers, from raw HTTP to MCP. Find the one that matches your runtime.</div>
+    <div class="card-title">Integrate it yourself</div>
+    <div class="card-body">Python, TypeScript, CLI + skill, MCP, or raw HTTP. Pick the highest layer your runtime supports, then follow its quickstart.</div>
   </a>
-  <a class="card" href="{{ '/http-quickstart/' | relative_url }}">
-    <div class="card-title">HTTP quickstart</div>
-    <div class="card-body">Create, poll, verify, consume — the four routes, end to end.</div>
-  </a>
+</div>
+
+## Understand the model
+
+<div class="cards">
   <a class="card" href="{{ '/terms-and-receipts/' | relative_url }}">
     <div class="card-title">Terms and receipts</div>
     <div class="card-body">What the human actually approves, and what the signed artifact contains.</div>
@@ -39,30 +75,3 @@ supports.
     <div class="card-body">The contract for the boundary where a receipt is turned into an action.</div>
   </a>
 </div>
-
-## Three parties, three responsibilities
-
-1. **The agent** creates an authorization request with exact terms and polls for the
-   decision. Its `yak_` key can ask, not act.
-2. **The user** approves or rejects in the YID app, gated on a fresh biometric scan.
-3. **The action executor** (relying party) verifies the signed receipt against the proposed
-   action and consumes it when single-use.
-
-## Install
-
-Pre-release: none of these packages is published to PyPI or npm yet. Until they are,
-install from a checkout — see Development in the
-[repository README]({{ site.github_repo }}#development).
-
-| Path | Install |
-|---|---|
-| Python SDK | `pip install yanez-agent-authorization` |
-| CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) |
-| MCP server | `pip install yanez-authz-mcp` |
-| TypeScript SDK | `npm install @yanez/agent-authorization` |
-
-## Credential rules
-
-The `yak_` key comes from configuration (`YANEZ_AGENT_API_KEY` or a secret manager) — never
-from model prompts, tool arguments, command-line flags, or logs. Never hand it to a
-sub-agent.

@@ -6,6 +6,7 @@
 <title>{% if page.url != "/" and page.title %}{{ page.title }} · {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
 <meta name="description" content="{{ page.description | default: site.description }}">
 <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+<link rel="describedby" href="{{ '/llms.txt' | relative_url }}">
 </head>
 <body>
 
@@ -44,6 +45,16 @@
   </aside>
 
   <main class="content">
+    {% assign md_path = page.path | remove_first: 'docs/' %}
+    {% assign md_url = site.github_repo | replace: 'github.com', 'raw.githubusercontent.com' | append: '/main/docs/' | append: md_path %}
+    {% capture prompt %}Read {{ md_url }} and help me integrate Yanez agent authorization into my project.{% endcapture %}
+    <div class="page-tools" id="toolbar">
+      <button type="button" class="copy-page" data-md="{{ md_url }}">Copy page</button>
+      <a href="{{ md_url }}">View as Markdown</a>
+      <a href="https://claude.ai/new?q={{ prompt | url_encode }}">Open in Claude</a>
+      <a href="https://chatgpt.com/?q={{ prompt | url_encode }}">Open in ChatGPT</a>
+      <a href="{{ '/llms.txt' | relative_url }}">llms.txt</a>
+    </div>
     <article class="prose">
       {{ content }}
     </article>
@@ -93,6 +104,18 @@
     headings.forEach(function (h) { observer.observe(h); });
   }
 
+  var copy = document.querySelector('.copy-page');
+  copy.addEventListener('click', function () {
+    fetch(copy.dataset.md)
+      .then(function (r) { return r.text(); })
+      .then(function (t) { return navigator.clipboard.writeText(t); })
+      .then(function () {
+        copy.textContent = 'Copied';
+        setTimeout(function () { copy.textContent = 'Copy page'; }, 1500);
+      })
+      .catch(function () { window.open(copy.dataset.md); });
+  });
+
   var toggle = document.querySelector('.menu-toggle');
   var sidebar = document.getElementById('sidebar');
   toggle.addEventListener('click', function () {
@@ -100,6 +123,49 @@
     toggle.setAttribute('aria-expanded', String(open));
   });
 })();
+</script>
+<script type="module">
+  var blocks = document.querySelectorAll('.language-mermaid');
+  if (blocks.length) {
+    var mermaid = (await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')).default;
+    blocks.forEach(function (b) {
+      var el = document.createElement('div');
+      el.className = 'mermaid';
+      el.textContent = b.textContent;
+      (b.closest('pre') || b).replaceWith(el);
+    });
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: {
+        fontFamily: 'inherit',
+        actorBkg: '#f1f0ff', actorBorder: '#635bff', actorTextColor: '#1a1f36',
+        signalColor: '#3c4257', signalTextColor: '#3c4257',
+        noteBkgColor: '#f6f9fc', noteBorderColor: '#e3e8ee', noteTextColor: '#3c4257'
+      }
+    });
+    await mermaid.run();
+
+    // click (or Enter) opens the diagram in a full-width lightbox; Esc or click closes it
+    document.querySelectorAll('.mermaid').forEach(function (box) {
+      box.setAttribute('tabindex', '0');
+      box.setAttribute('role', 'button');
+      box.setAttribute('aria-label', 'Enlarge diagram');
+      function open() {
+        var dlg = document.createElement('dialog');
+        dlg.className = 'diagram-zoom';
+        dlg.appendChild(box.querySelector('svg').cloneNode(true));
+        dlg.addEventListener('click', function () { dlg.close(); });
+        dlg.addEventListener('close', function () { dlg.remove(); });
+        document.body.appendChild(dlg);
+        dlg.showModal();
+      }
+      box.addEventListener('click', open);
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+    });
+  }
 </script>
 
 </body>

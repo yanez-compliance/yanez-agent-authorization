@@ -29,6 +29,8 @@ nav:
     items:
       - title: Overview
         url: /
+      - title: Use with AI agents
+        url: /ai-agents/
       - title: Choosing an integration path
         url: /integration-options/
       - title: HTTP quickstart

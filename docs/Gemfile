@@ -1,0 +1,4 @@
+# Local preview only. GitHub Pages ignores this file and uses the same github-pages gem.
+source "https://rubygems.org"
+gem "github-pages", group: :jekyll_plugins
+gem "webrick" # jekyll 3 needs it for `serve` on Ruby 3+

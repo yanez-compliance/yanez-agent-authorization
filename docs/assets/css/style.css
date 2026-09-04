@@ -326,3 +326,72 @@ a:hover { text-decoration: underline; }
   .prose h1 { font-size: 29px; }
   .prose h2 { font-size: 21px; }
 }
+
+/* per-page agent handoff toolbar */
+.page-tools {
+  max-width: 760px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 22px;
+}
+.page-tools a,
+.page-tools button {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.page-tools a:hover,
+.page-tools button:hover { color: var(--heading); border-color: var(--muted); text-decoration: none; }
+
+.button {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.button:hover { color: #fff; opacity: 0.9; text-decoration: none; }
+
+/* mermaid diagrams */
+.mermaid { margin: 0 0 26px; overflow-x: auto; text-align: center; }
+.mermaid svg { max-width: 100%; height: auto; }
+
+/* diagram lightbox */
+.mermaid { cursor: zoom-in; }
+.diagram-zoom {
+  width: min(96vw, 1400px);
+  max-width: none;
+  max-height: 92vh;
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  cursor: zoom-out;
+}
+.diagram-zoom::backdrop { background: rgba(26, 31, 54, 0.6); }
+.diagram-zoom svg { display: block; width: 100%; min-width: 720px; height: auto; max-width: none !important; }
+
+/* warning callouts and outcome badges */
+.callout-warn { border-left-color: #b45309; }
+.callout + .callout { margin-top: -10px; }
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.badge-ok { background: #e6f7ee; color: #0b6b3a; }
+.badge-no { background: #fdecec; color: #a12622; }
