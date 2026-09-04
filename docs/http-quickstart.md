@@ -81,3 +81,7 @@ Content-Type: application/json
 `valid` answers only "is this receipt genuine" — a spent or consent-expired receipt
 stays `valid: true`. Gate the action on `consumed_now: true`. A repeat consume returns
 `reason: "already_consumed"`, `consumed_now: false`; never act on it.
+
+A receipt is bearer proof: never log it or put it in a URL. If the consume response is
+lost, a retry answers `already_consumed` whether your call or another spent it. Do not
+act; request a new approval.

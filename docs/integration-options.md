@@ -16,11 +16,6 @@ contract; pick the highest one your runtime supports.
 | Shell-capable coding agent | `yanez-authz` CLI + the `yanez-authorize` skill | [examples/skill-cli/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/skill-cli) |
 | MCP-capable host | `yanez-authz-mcp` (stdio) + the skill | [examples/mcp/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/mcp) |
 
-Package names: PyPI `yanez-agent-authorization`, `yanez-authz-cli`, `yanez-authz-mcp`;
-npm `@yanez/agent-authorization`. Pre-release: none is published yet, so install from a
-checkout ([README](https://github.com/yanez-compliance/yanez-agent-authorization#development),
-Development).
-
 MCP is **not required**. It is the preferred adapter when the host already supports it,
 because it gives the model discoverable typed tools and keeps the credential in a
 process the model never sees. A skill by itself is not a security boundary and cannot
@@ -37,3 +32,28 @@ Three parties, three responsibilities:
 Credential rules, everywhere: the `yak_` key comes from configuration
 (`YANEZ_AGENT_API_KEY` or a secret manager), never from model prompts, tool arguments,
 command-line flags, or logs. Never hand it to a sub-agent.
+
+## Install
+
+The Python SDK is on PyPI as a pre-release. Pass `--pre`, because pip prefers stable
+releases and skips pre-releases unless you ask for them:
+
+```sh
+pip install --pre yanez-agent-authorization
+```
+
+For a reproducible install, pin the exact build instead, for example
+`pip install yanez-agent-authorization==0.1.0a1`. The
+[release history](https://pypi.org/project/yanez-agent-authorization/#history) lists
+every published version.
+
+The CLI, the MCP server, and the TypeScript SDK are not published yet. Until they are,
+install them from a checkout. See Development in the
+[repository README](https://github.com/yanez-compliance/yanez-agent-authorization#development).
+
+| Path | Install | Status |
+|---|---|---|
+| Python SDK | `pip install --pre yanez-agent-authorization` | PyPI, pre-release |
+| CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) | Not published; install from a checkout |
+| MCP server | `pip install yanez-authz-mcp` | Not published; install from a checkout |
+| TypeScript SDK | `npm install @yanez/agent-authorization` | Not published; install from a checkout |

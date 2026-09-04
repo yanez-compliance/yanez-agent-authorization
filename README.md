@@ -24,12 +24,13 @@ then the matching quickstart.
 
 ## Install
 
-Pre-release: none of these packages is on PyPI or npm yet. Until they are, install
-from a checkout with the commands under Development.
+Pre-release: the Python SDK is on PyPI as a pre-release, so pass `--pre`. The CLI, MCP
+server, and TypeScript SDK are not published yet; until they are, install them from a
+checkout with the commands under Development.
 
 | Path | Install |
 |---|---|
-| Python SDK | `pip install yanez-agent-authorization` |
+| Python SDK | `pip install --pre yanez-agent-authorization` |
 | CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) |
 | MCP server | `pip install yanez-authz-mcp` (installs `yanez-authz-mcp`) |
 | TypeScript SDK | `npm install @yanez/agent-authorization` |

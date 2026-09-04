@@ -4,7 +4,7 @@ Async client for requesting verifiable human approval through Yanez, and a verif
 for the signed receipts. Import package: `yanez_authz`.
 
 ```sh
-pip install yanez-agent-authorization   # pre-release: not on PyPI yet; pip install -e packages/python
+pip install --pre yanez-agent-authorization   # pre-release; from a checkout: pip install -e packages/python
 ```
 
 ```python
