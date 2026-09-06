@@ -7,8 +7,38 @@ export const REJECTED = "rejected";
 export const EXPIRED = "expired";
 export const TERMINAL: ReadonlySet<string> = new Set([APPROVED, REJECTED, EXPIRED]);
 
-/** Terms are an arbitrary JSON object; the server enforces the 4 KB cap. */
-export type Terms = Record<string, unknown>;
+/**
+ * What the human approves. The server rejects a create with 422 unless every required
+ * field is present and well-formed, and the YID app renders them on the approval
+ * screen. Extra keys are allowed at every level and are compared like everything else.
+ * Field rules: https://yanez-compliance.github.io/yanez-agent-authorization/terms/
+ */
+export interface Terms {
+  /** Short, lowercase, identical across identical operations; free-form for now. */
+  action: string;
+  /** The headline on the approval screen. */
+  approval_title: string;
+  /** One line under the title stating the whole action, amount included. */
+  summary: string;
+  /** The seller's name as the approver knows it. */
+  merchant: string;
+  /** ISO 4217 code such as "USD"; the server checks only that it isn't blank. */
+  currency: string;
+  amount: {
+    /** Whole number of the currency's minor unit, 0 to 2^63-1: 18000 is $180.00 under USD. */
+    minor_units: number;
+    /** Must equal the top-level currency exactly. */
+    currency: string;
+    /** The amount as the approver reads it, such as "$180.00". */
+    display: string;
+    [extra: string]: unknown;
+  };
+  /** Rendered as a two-column table in array order. May be empty. */
+  details: { label: string; value: string; emphasized: boolean; [extra: string]: unknown }[];
+  /** Names the asking agent; omit or null to fall back to the agent key's label. */
+  agent_name?: string | null;
+  [extra: string]: unknown;
+}
 
 export interface PendingAuthorization {
   requestId: string;

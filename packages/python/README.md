@@ -19,6 +19,9 @@ receipt = ReceiptVerifier(base_url, expected_issuer).authorize_action(
     expected_sub=account_yid)   # the YID your records tie to the account
 ```
 
+`terms` has a required shape that the server enforces with a `422`; every field is
+documented on the [Terms page](https://yanez-compliance.github.io/yanez-agent-authorization/terms/).
+
 `wait_for_authorization` raises the builtin `TimeoutError` when the local deadline
 passes; rejection and expiry are returned as values. `expected_issuer` is the issuer
 string your Yanez operator publishes for the deployment.

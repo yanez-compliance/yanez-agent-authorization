@@ -58,7 +58,15 @@ def build_server(settings: Optional[Settings] = None,
         never executes the action. State-changing and non-destructive: each call rings
         the user's phone once, so do not call it speculatively or in a loop. One
         idempotency key is created before the first HTTP attempt and reused for every
-        internal retry."""
+        internal retry.
+
+        `terms` must carry all of the following, or the server answers 422 naming every
+        offending field: action, approval_title, summary, merchant, currency (non-blank
+        strings); amount as {minor_units, currency, display}, with minor_units a whole
+        number of the currency's minor unit (18000 is $180.00 under USD) and currency
+        equal to the top-level one; details as an array of {label, value, emphasized}
+        rows the app renders in order (may be empty). agent_name is optional. The
+        approver sees these fields verbatim, and they are embedded in the receipt."""
         try:
             pending = await (await _client()).request_authorization(
                 terms, decision_window_seconds=decision_window_seconds,

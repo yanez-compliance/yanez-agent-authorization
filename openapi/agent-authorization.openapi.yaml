@@ -22,11 +22,29 @@ components:
           - string
           - 'null'
         terms:
-          description: 'The verbatim terms the user is asked to approve, opaque JSON
-            to the server. terms.action and terms.summary are required non-empty strings;
-            the whole object is capped at 4096 bytes of compact JSON (413 above that).
-            Decimal quantities should be strings ("180.00") so their meaning survives
-            JSON implementations without binary floating-point differences.
+          description: 'The verbatim terms the user is asked to approve, and the object
+            the YID app renders on the approval screen. Required non-blank strings:
+            action, approval_title, summary, merchant, currency. Required object amount:
+            minor_units (a JSON integer from 0 to 9223372036854775807, the amount
+            in the currency''s minor unit, so 18000 is $180.00 under USD), currency
+            (equal to the top-level currency, case-sensitive), and display (the amount
+            formatted for a human). Required array details: every entry carries label
+            and value as non-blank strings plus a real boolean emphasized, rendered
+            as a table in array order. The array may be empty, though rows are what
+            the approver checks. Optional: agent_name, a non-blank string or null,
+            naming the asking agent; omit it or send null to fall back to the agent
+            key''s label, as a blank string is rejected rather than treated as absent.
+            Extra keys are allowed at every level. action is free-form and currency
+            is not checked against ISO 4217. The server cannot verify that display
+            agrees with minor_units and currency — that agreement is yours to keep.
+            Non-money actions still carry all three money fields, because the app
+            renders one approval screen for every action: set merchant to the counterparty
+            and amount to {"minor_units": 0, "currency": "USD", "display": "No charge"}.
+            A missing, blank, or wrongly typed field is a 422 naming every offending
+            field path. The whole object is capped at 4096 bytes of compact JSON (413
+            above that). Any other decimal quantity should be a string ("1.5") so
+            its meaning survives JSON implementations without binary floating-point
+            differences.
 
             '
           type: object
@@ -132,6 +150,17 @@ components:
         detail:
           type: string
       type: object
+    HTTPValidationError:
+      description: 'Body returned for a request-schema violation. Distinct from Error,
+        whose detail is a string.
+
+        '
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+      type: object
     IntrospectIn:
       additionalProperties: false
       properties:
@@ -218,6 +247,46 @@ components:
       required:
       - keys
       type: object
+    ValidationError:
+      description: 'One request-schema violation, as produced by the request validator
+        before any handler runs.
+
+        '
+      properties:
+        input:
+          description: 'The value you sent for this field, echoed back verbatim. Redact
+            it before logging if the payload can carry personal data.
+
+            '
+        loc:
+          description: 'Path to the offending field, starting with the location ("body",
+            "query", "header", "path").
+
+            '
+          examples:
+          - - body
+            - terms
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+        msg:
+          examples:
+          - Input should be a valid dictionary
+          type: string
+        type:
+          examples:
+          - dict_type
+          type: string
+        url:
+          description: Link to the validator's documentation for this error type.
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      type: object
   securitySchemes:
     AgentApiKey:
       bearerFormat: YanezAgentKey
@@ -294,8 +363,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: 'Invalid terms (missing action/summary), intent_expires_at
-            in the past, or a malformed Idempotency-Key.
+          description: 'intent_expires_at in the past, a malformed Idempotency-Key,
+            or NaN or Infinity anywhere in terms. A terms field that is missing, blank,
+            or wrongly typed is a 422, not a 400.
 
             '
         '401':
@@ -320,8 +390,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: Schema violation, such as decision_window_seconds out of 60-3600.
+                oneOf:
+                - $ref: '#/components/schemas/Error'
+                - $ref: '#/components/schemas/HTTPValidationError'
+          description: 'A terms field that is missing, blank, or wrongly typed, or
+            a request schema violation such as decision_window_seconds out of 60-3600.
+            The two carry different bodies. Terms validation returns the Error shape:
+            detail is a string naming every offending field path (terms.amount.minor_units,
+            terms.details[2].emphasized) so one retry fixes the payload, and it never
+            echoes the offending values. A schema violation is rejected before terms
+            validation runs and returns the request validator''s own body instead:
+            detail is an array whose entries carry loc, msg, and input, and input
+            is the value you sent. Treat that body as containing your payload — redact
+            it before logging if terms can carry personal data.
+
+            '
         '429':
           content:
             application/json:
@@ -415,8 +498,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-          description: Malformed body, such as a missing artifact field.
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: 'Malformed body, such as a missing artifact field. This endpoint
+            raises no 422 of its own, so detail is always the request validator''s
+            array.
+
+            '
       security: []
       summary: Verify a receipt online, and optionally consume it
   /api/authz/public-keys:

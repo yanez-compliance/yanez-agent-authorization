@@ -18,6 +18,20 @@ SETTINGS = Settings(base_url="https://yanez.test", agent_api_key="yak_x_secret",
                     http_timeout_seconds=10)
 SECRET = SETTINGS.agent_api_key
 
+TERMS = {
+    "action": "purchase",
+    "approval_title": "Purchase running shoes",
+    "summary": "Buy running shoes for $180.00 at Example Store",
+    "merchant": "Example Store",
+    "currency": "USD",
+    "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+    "details": [
+        {"label": "Merchant", "value": "Example Store", "emphasized": False},
+        {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": False},
+        {"label": "Amount", "value": "$180.00", "emphasized": True},
+    ],
+}
+
 
 class FakeClient:
     def __init__(self) -> None:
@@ -59,11 +73,11 @@ def test_request_returns_the_pending_result(capfd):
     fake = FakeClient()
     server = build_server(SETTINGS, client=fake)
     result = _call(server, "yanez_request_authorization",
-                   {"terms": {"action": "purchase", "summary": "Buy shoes"}})
+                   {"terms": TERMS})
     assert not result.isError
     data = result.structuredContent
     assert data["request_id"] == "azr_1" and data["status"] == "pending"
-    assert fake.created == [{"action": "purchase", "summary": "Buy shoes"}]
+    assert fake.created == [TERMS]
     # Nothing but protocol traffic on stdout; logs go to stderr.
     out, _err = capfd.readouterr()
     assert out == ""
@@ -96,7 +110,7 @@ def test_tool_errors_are_sanitized_and_never_carry_the_key():
 
     server = build_server(SETTINGS, client=Failing())
     result = _call(server, "yanez_request_authorization",
-                   {"terms": {"action": "x", "summary": "y"}})
+                   {"terms": TERMS})
     assert result.isError
     text = " ".join(c.text for c in result.content if hasattr(c, "text"))
     assert "AuthenticationError" in text and SECRET not in text
@@ -123,6 +137,6 @@ def test_intent_expires_at_is_passed_through_to_the_sdk():
 
     client = Recording()
     _call(build_server(SETTINGS, client=client), "yanez_request_authorization",
-          {"terms": {"action": "purchase", "summary": "x"},
+          {"terms": TERMS,
            "intent_expires_at": "2026-01-01T00:10:00Z"})
     assert client.created[0]["intent_expires_at"] == "2026-01-01T00:10:00Z"

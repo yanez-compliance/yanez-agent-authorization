@@ -3,7 +3,18 @@
 # Needs: YANEZ_BASE_URL, YANEZ_AGENT_API_KEY. Uses curl, jq, and uuidgen.
 set -euo pipefail
 
-terms='{"action":"purchase","summary":"Buy running shoes for $180 at Example Store","merchant":"Example Store","amount":"180.00","currency":"USD"}'
+terms=$(cat <<'JSON'
+{"action":"purchase",
+ "approval_title":"Purchase running shoes",
+ "summary":"Buy running shoes for $180.00 at Example Store",
+ "merchant":"Example Store",
+ "currency":"USD",
+ "amount":{"minor_units":18000,"currency":"USD","display":"$180.00"},
+ "details":[{"label":"Merchant","value":"Example Store","emphasized":false},
+            {"label":"Item","value":"Running shoes, model X, size 10","emphasized":false},
+            {"label":"Amount","value":"$180.00","emphasized":true}]}
+JSON
+)
 idem=$(uuidgen)
 
 created=$(curl -sf -X POST "$YANEZ_BASE_URL/api/agent/authorizations" \

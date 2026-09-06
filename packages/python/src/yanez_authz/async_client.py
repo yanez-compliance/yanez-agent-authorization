@@ -87,6 +87,9 @@ class AuthorizationClient:
         the internal retry, so an ambiguous network failure can never prompt the user
         twice — the retry replays instead.
 
+        `terms` must follow the shape at https://yanez-compliance.github.io/yanez-agent-authorization/terms/
+        or the server answers 422 naming every offending field.
+
         Supplying `idempotency_key` yourself is for resuming one specific earlier
         create. Derive it from randomness, never from the terms: a content-derived key
         makes a second genuine purchase of the same item replay the first one instead

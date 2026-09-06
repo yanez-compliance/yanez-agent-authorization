@@ -11,10 +11,16 @@ import { AuthorizationClient, ReceiptVerifier } from "@yanez/agent-authorization
 
 const TERMS = {
   action: "purchase",
-  summary: "Buy running shoes for $180 at Example Store",
+  approval_title: "Purchase running shoes",
+  summary: "Buy running shoes for $180.00 at Example Store",
   merchant: "Example Store",
-  amount: "180.00",
   currency: "USD",
+  amount: { minor_units: 18000, currency: "USD", display: "$180.00" },
+  details: [
+    { label: "Merchant", value: "Example Store", emphasized: false },
+    { label: "Item", value: "Running shoes, model X, size 10", emphasized: false },
+    { label: "Amount", value: "$180.00", emphasized: true },
+  ],
 };
 
 const baseUrl = process.env.YANEZ_BASE_URL!;

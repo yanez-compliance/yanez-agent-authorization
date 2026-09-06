@@ -11,6 +11,9 @@ yanez-authz --json request --terms-file terms.json
 yanez-authz --json wait azr_... --timeout 900
 ```
 
+`terms.json` follows the shape on the [Terms page](https://yanez-compliance.github.io/yanez-agent-authorization/terms/);
+the server answers `422` naming every offending field otherwise.
+
 `--json` and `--base-url` go before the subcommand. Terms and artifacts come from
 files or stdin (`-`), never from the command line. `verify` takes `--expected-sub` to
 bind the receipt to the account's YID. Exit codes: 0 answer, 1 failure or

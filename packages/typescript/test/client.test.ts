@@ -14,12 +14,25 @@ import {
   RateLimitError,
   TermsTooLargeError,
   TransportError,
+  type Terms,
 } from "../src/index.js";
 import { httpFixtures, jsonResponse } from "./helpers.js";
 
 const BASE = "https://yanez.test";
 const KEY = "yak_abc123abc123_s3cr3t-value";
-const TERMS = { action: "purchase", summary: "Buy running shoes for $180 at Example Store" };
+const TERMS = {
+  action: "purchase",
+  approval_title: "Purchase running shoes",
+  summary: "Buy running shoes for $180.00 at Example Store",
+  merchant: "Example Store",
+  currency: "USD",
+  amount: { minor_units: 18000, currency: "USD", display: "$180.00" },
+  details: [
+    { label: "Merchant", value: "Example Store", emphasized: false },
+    { label: "Item", value: "Running shoes, model X, size 10", emphasized: false },
+    { label: "Amount", value: "$180.00", emphasized: true },
+  ],
+};
 
 type Handler = (url: URL, init: RequestInit) => Response | Promise<Response>;
 
@@ -60,6 +73,16 @@ test("transport retry reuses the same idempotency key", async () => {
   assert.deepStrictEqual(attempts, ["retry-1", "retry-1"]);
   assert.strictEqual(pending.replayed, true);
 });
+
+// Compile-time check: the server allows extra keys at every level, so the type must
+// too — an inline literal with extras in `amount` and a `details` row has to type-check.
+const _extraKeysEverywhere: Terms = {
+  ...TERMS,
+  amount: { ...TERMS.amount, tax_minor_units: 0 },
+  details: [{ label: "Item", value: "Shoes", emphasized: false, icon: "cart" }],
+  item_id: "sku_123",
+};
+void _extraKeysEverywhere;
 
 const STATUS_CASES: [number, new (m: string) => Error, boolean][] = [
   [400, InvalidRequestError, true],

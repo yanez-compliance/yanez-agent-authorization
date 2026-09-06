@@ -17,6 +17,9 @@ yanez-authz --json request --terms-file terms.json
 yanez-authz --json wait azr_... --timeout 900
 ```
 
+`terms.json` follows the shape on the [Terms page](https://yanez-compliance.github.io/yanez-agent-authorization/terms/);
+`references/terms-guidance.md` in the skill shows a profile per action type.
+
 The relying party verifies and consumes independently:
 
 ```sh

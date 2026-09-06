@@ -22,7 +22,19 @@ from yanez_authz import (
 
 BASE = "https://yanez.test"
 KEY = "yak_abc123abc123_s3cr3t-value"
-TERMS = {"action": "purchase", "summary": "Buy running shoes for $180 at Example Store"}
+TERMS = {
+    "action": "purchase",
+    "approval_title": "Purchase running shoes",
+    "summary": "Buy running shoes for $180.00 at Example Store",
+    "merchant": "Example Store",
+    "currency": "USD",
+    "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+    "details": [
+        {"label": "Merchant", "value": "Example Store", "emphasized": False},
+        {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": False},
+        {"label": "Amount", "value": "$180.00", "emphasized": True},
+    ],
+}
 
 
 def _client(handler, **kw) -> AuthorizationClient:

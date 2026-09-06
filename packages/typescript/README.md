@@ -17,7 +17,12 @@ import { AuthorizationClient } from "@yanez/agent-authorization";
 const client = new AuthorizationClient(process.env.YANEZ_BASE_URL!, process.env.YANEZ_AGENT_API_KEY!);
 const pending = await client.requestAuthorization({
   action: "purchase",
-  summary: "Buy running shoes for $180 at Example Store",
+  approval_title: "Purchase running shoes",
+  summary: "Buy running shoes for $180.00 at Example Store",
+  merchant: "Example Store",
+  currency: "USD",
+  amount: { minor_units: 18000, currency: "USD", display: "$180.00" },
+  details: [{ label: "Amount", value: "$180.00", emphasized: true }],
 });
 const result = await client.waitForAuthorization(pending.requestId, 900);
 // When result.status is "approved", result.artifact is the signed receipt.
