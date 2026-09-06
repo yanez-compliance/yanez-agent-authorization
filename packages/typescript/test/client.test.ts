@@ -74,6 +74,24 @@ test("transport retry reuses the same idempotency key", async () => {
   assert.strictEqual(pending.replayed, true);
 });
 
+test("a schema 422 names the field paths and never echoes the payload", async () => {
+  // The request validator's array carries the submitted value under `input`; the
+  // message reaches logs and MCP tool results, so only the paths may survive.
+  const c = client(() => jsonResponse(422, { detail: [
+    { type: "bool_type", loc: ["body", "terms", "details", 2, "emphasized"],
+      msg: "Input should be a valid boolean", input: { patient: "Jane Doe" } },
+    { type: "less_than_equal", loc: ["body", "decision_window_seconds"],
+      msg: "Input should be <= 3600", input: 99999 },
+  ] }));
+  await assert.rejects(c.requestAuthorization(TERMS), (e: Error) => {
+    assert.ok(e instanceof InvalidRequestError);
+    assert.strictEqual(e.message,
+      "invalid request: terms.details[2].emphasized, decision_window_seconds");
+    assert.ok(!e.message.includes("Jane Doe") && !e.message.includes("99999"));
+    return true;
+  });
+});
+
 // Compile-time check: the server allows extra keys at every level, so the type must
 // too — an inline literal with extras in `amount` and a `details` row has to type-check.
 const _extraKeysEverywhere: Terms = {

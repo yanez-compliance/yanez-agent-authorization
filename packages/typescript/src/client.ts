@@ -54,11 +54,37 @@ export async function raiseFor(
   if (response.ok) return;
   let detail: string | undefined;
   try {
-    detail = ((await response.json()) as { detail?: string })?.detail;
+    detail = detailText(await response.json());
   } catch {
     detail = undefined; // a non-JSON error body has no detail to extract
   }
   throw errorForStatus(response.status, detail, options);
+}
+
+/**
+ * The error body's `detail` as a string that carries none of the submitted values.
+ *
+ * A terms-validation 422 sends `detail` as a sanitized string. A request-schema 422
+ * sends the validator's own array instead, and each entry echoes the submitted value
+ * under `input`; keep only each entry's field path, written the way the server writes
+ * its own (`terms.details[2].emphasized`).
+ */
+function detailText(body: unknown): string | undefined {
+  const detail = (body as { detail?: unknown } | null)?.detail;
+  if (typeof detail === "string") return detail;
+  if (!Array.isArray(detail)) return undefined;
+  const paths: string[] = [];
+  for (const entry of detail) {
+    const rawLoc = (entry as { loc?: unknown } | null)?.loc;
+    if (!Array.isArray(rawLoc)) continue;
+    const loc: unknown[] = rawLoc[0] === "body" ? rawLoc.slice(1) : rawLoc;
+    let path = "";
+    for (const part of loc) {
+      path += typeof part === "number" ? `[${part}]` : (path ? "." : "") + String(part);
+    }
+    if (path) paths.push(path);
+  }
+  return paths.length ? `invalid request: ${paths.join(", ")}` : "invalid request";
 }
 
 export interface AuthorizationClientOptions {

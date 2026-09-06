@@ -79,6 +79,27 @@ def test_transport_retry_reuses_the_same_idempotency_key(http_fixtures):
     assert pending.replayed is True
 
 
+def test_a_schema_422_names_the_field_paths_and_never_echoes_the_payload():
+    # The request validator's array carries the submitted value under `input`; the
+    # message reaches stderr and MCP tool results, so only the paths may survive.
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(422, json={"detail": [
+            {"type": "string_type", "loc": ["body", "terms", "details", 2, "emphasized"],
+             "msg": "Input should be a valid boolean", "input": {"patient": "Jane Doe"}},
+            {"type": "less_than_equal", "loc": ["body", "decision_window_seconds"],
+             "msg": "Input should be <= 3600", "input": 99999},
+        ]})
+
+    async def main():
+        async with _client(handler) as client:
+            await client.request_authorization(TERMS)
+
+    with pytest.raises(InvalidRequestError) as e:
+        asyncio.run(main())
+    assert str(e.value) == "invalid request: terms.details[2].emphasized, decision_window_seconds"
+    assert "Jane Doe" not in str(e.value) and "99999" not in str(e.value)
+
+
 @pytest.mark.parametrize("status,exc,create", [
     (401, AuthenticationError, True),
     (404, FeatureUnavailableError, True),   # the whole router is absent on create

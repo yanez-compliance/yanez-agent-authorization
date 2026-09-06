@@ -29,6 +29,35 @@ def require_trusted_origin(base_url: str) -> str:
     raise ValueError("base_url must be https:// (plain http is allowed only for loopback)")
 
 
+def _detail_text(body: object) -> Optional[str]:
+    """The error body's `detail` as a string that carries none of the submitted values.
+
+    A terms-validation 422 sends `detail` as a sanitized string. A request-schema 422
+    sends the validator's own array instead, and each entry echoes the submitted value
+    under `input`; that body reaches the CLI's stderr and the MCP tool result, so keep
+    only each entry's field path, written the way the server writes its own
+    (`terms.details[2].emphasized`).
+    """
+    detail = body.get("detail") if isinstance(body, dict) else None
+    if isinstance(detail, str):
+        return detail
+    if not isinstance(detail, list):
+        return None
+    paths = []
+    for entry in detail:
+        loc = entry.get("loc") if isinstance(entry, dict) else None
+        if not isinstance(loc, list):
+            continue
+        if loc and loc[0] == "body":
+            loc = loc[1:]
+        path = ""
+        for part in loc:
+            path += f"[{part}]" if isinstance(part, int) else ("." if path else "") + str(part)
+        if path:
+            paths.append(path)
+    return "invalid request: " + ", ".join(paths) if paths else "invalid request"
+
+
 def _raise_for(response: httpx.Response, *, create: bool = False) -> None:
     if response.is_redirect:
         # Never carry the Authorization header across a redirect; a credentialed
@@ -37,7 +66,7 @@ def _raise_for(response: httpx.Response, *, create: bool = False) -> None:
     if response.is_success:
         return
     try:
-        detail = response.json().get("detail")
+        detail = _detail_text(response.json())
     except Exception:  # noqa: BLE001 — a non-JSON error body has no detail to extract
         detail = None
     raise error_for_status(response.status_code, detail, create=create)
