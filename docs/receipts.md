@@ -1,26 +1,15 @@
 ---
-title: Terms and receipts
-description: What the human approves, and the claim profile of the signed artifact.
+title: Receipts
+description: The claim profile of the signed artifact, how Yanez signs it, and how verification keys rotate.
+redirect_from:
+  - /terms-and-receipts/
 ---
 
-# Terms and receipts
+# Receipts
 
-## Terms
-
-Opaque JSON to the server; a promise to the human who approves it and the relying
-party that enforces it. `terms.action` and `terms.summary` are required non-empty
-strings; the whole object is capped at 4 KB compact JSON. Decimal quantities travel as
-strings ("180.00"). Recommended profiles (purchase, disclosure, permission):
-[terms guidance](https://github.com/yanez-compliance/yanez-agent-authorization/blob/main/skills/yanez-authorize/references/terms-guidance.md).
-
-If any material field changes after approval — counterparty, resource, amount,
-currency, destination, scope, deadline — the old receipt must not be used. New terms
-mean a new authorization request.
-
-Yanez stores the parsed JSON value of the terms, not the bytes, so whitespace and key
-order are not preserved. That is why verification compares terms by deep JSON
-equality, never by byte equality. The YID app shows the approver the stored terms and
-never resubmits them, so an agent cannot change the terms while approval is pending.
+A receipt is the signed artifact a Yanez approval produces. It is what the relying
+party verifies before acting. What the human approved is on the
+[terms](terms.md) page.
 
 ## The receipt (artifact)
 
@@ -47,6 +36,11 @@ separate questions, three separate mechanisms:
 2. *Recent enough for me to act?* Your policy, applied to `yanez_decided_at`.
 3. *Still within the declared consent bound, and unspent?* `yanez_consent_not_after`
    plus introspection with `consume: true`.
+
+Yanez stores the parsed JSON value of the terms, not the bytes, so whitespace and key
+order are not preserved. That is why verification compares terms by deep JSON
+equality, never by byte equality. The YID app shows the approver the stored terms and
+never resubmits them, so an agent cannot change the terms while approval is pending.
 
 ## How the receipt is signed
 

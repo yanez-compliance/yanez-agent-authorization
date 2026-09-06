@@ -13,6 +13,7 @@ kramdown:
 
 plugins:
   - jekyll-relative-links
+  - jekyll-redirect-from
 
 relative_links:
   enabled: true
@@ -37,7 +38,9 @@ nav:
         url: /http-quickstart/
   - section: Concepts
     items:
-      - title: Terms and receipts
-        url: /terms-and-receipts/
+      - title: Terms
+        url: /terms/
+      - title: Receipts
+        url: /receipts/
       - title: Action enforcement
         url: /action-enforcement/

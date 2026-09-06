@@ -17,11 +17,21 @@ Authorization: Bearer yak_...
 Idempotency-Key: b1946ac92492d234
 Content-Type: application/json
 
-{"terms": {"action": "purchase", "summary": "Buy running shoes for $180 at Example Store",
-           "merchant": "Example Store", "amount": "180.00", "currency": "USD"},
+{"terms": {"action": "purchase",
+           "approval_title": "Purchase running shoes",
+           "summary": "Buy running shoes for $180.00 at Example Store",
+           "merchant": "Example Store",
+           "currency": "USD",
+           "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+           "details": [{"label": "Merchant", "value": "Example Store", "emphasized": false},
+                       {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": false},
+                       {"label": "Amount", "value": "$180.00", "emphasized": true}]},
  "decision_window_seconds": 900,
  "intent_expires_at": "<RFC 3339 timestamp in the future>"}
 ```
+
+Every field of `terms` is required, and the YID app renders it to the approver. Field
+rules, including the `amount` and `details` shapes: [terms](terms.md).
 
 `201` → `{"request_id": "azr_...", "status": "pending", "decide_by": "..."}`.
 
@@ -67,7 +77,7 @@ Flat Ed25519 JWKs. Verify the artifact offline: pin `alg=EdDSA`, select the key 
 header `kid` (refresh on an unknown kid, at most once per 30 s), check your exact
 expected `iss`, compare `yanez_terms` with your expected terms by deep equality, and
 check that `sub` is the YID your records tie to the account being acted on. Claim
-profile and freshness rules: [terms and receipts](terms-and-receipts.md).
+profile and freshness rules: [receipts](receipts.md).
 
 ## 4. Consume (action executor, single-use actions)
 

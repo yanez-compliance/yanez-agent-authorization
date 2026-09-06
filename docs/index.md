@@ -66,9 +66,13 @@ Two ways in. Pick one.
 ## Understand the model
 
 <div class="cards">
-  <a class="card" href="{{ '/terms-and-receipts/' | relative_url }}">
-    <div class="card-title">Terms and receipts</div>
-    <div class="card-body">What the human actually approves, and what the signed artifact contains.</div>
+  <a class="card" href="{{ '/terms/' | relative_url }}">
+    <div class="card-title">Terms</div>
+    <div class="card-body">The object the human actually approves, field by field.</div>
+  </a>
+  <a class="card" href="{{ '/receipts/' | relative_url }}">
+    <div class="card-title">Receipts</div>
+    <div class="card-body">What the signed artifact contains, how it is signed, and how its keys rotate.</div>
   </a>
   <a class="card" href="{{ '/action-enforcement/' | relative_url }}">
     <div class="card-title">Action enforcement</div>

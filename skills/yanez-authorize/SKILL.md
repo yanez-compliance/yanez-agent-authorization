@@ -38,10 +38,15 @@ Use whichever adapter this host provides — never raw HTTP, and never handle th
 ## Rules
 
 1. Assemble ALL material terms first; show them to the user in conversation before
-   calling. Required precision (details in `references/terms-guidance.md`): a short
-   specific `action`; a one-line user-readable `summary`; counterparty and resource
-   identifiers; exact amount and currency for money; destination, audience, and data
-   categories for disclosures; scope and duration for permissions.
+   calling. Every field is required, and a missing or blank one is a `422` (details in
+   `references/terms-guidance.md`): a short specific `action`; an `approval_title` and a
+   one-line `summary` for the approval screen; `merchant`; `currency`; `amount` as
+   `{minor_units, currency, display}`, with `minor_units` a whole number of the
+   currency's minor unit; and `details`, the `label`/`value`/`emphasized` rows the app
+   renders in array order. `agent_name` is optional and names your agent on the screen;
+   omit it or send `null` to fall back to the agent key's label. The specifics go in
+   `details`: counterparty and resource identifiers, destination and data categories for
+   disclosures, scope and duration for permissions.
 2. One request at a time. Poll it; do not file replacements while one is pending.
 3. Rejection or expiry means STOP. Do not retry, rephrase, or loop-create.
 4. If ANY material field changes after approval — counterparty, resource, amount,

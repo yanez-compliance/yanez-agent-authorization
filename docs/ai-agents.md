@@ -82,7 +82,8 @@ BASE=https://raw.githubusercontent.com/yanez-compliance/yanez-agent-authorizatio
 
 curl "$BASE/docs/integration-options.md"              # choosing an integration path
 curl "$BASE/docs/http-quickstart.md"                  # the four HTTP routes
-curl "$BASE/docs/terms-and-receipts.md"               # what the human approves; receipt claims
+curl "$BASE/docs/terms.md"                            # every field of what the human approves
+curl "$BASE/docs/receipts.md"                         # receipt claims, signing, key rotation
 curl "$BASE/docs/action-enforcement.md"               # the action executor's contract
 curl "$BASE/openapi/agent-authorization.openapi.yaml" # full request and response schemas
 
