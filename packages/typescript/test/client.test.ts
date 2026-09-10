@@ -21,12 +21,13 @@ import { httpFixtures, jsonResponse } from "./helpers.js";
 const BASE = "https://yanez.test";
 const KEY = "yak_abc123abc123_s3cr3t-value";
 const TERMS = {
+  schema_version: 1,
   action: "purchase",
   approval_title: "Purchase running shoes",
   summary: "Buy running shoes for $180.00 at Example Store",
   merchant: "Example Store",
   currency: "USD",
-  amount: { minor_units: 18000, currency: "USD", display: "$180.00" },
+  amount: { minor_units: 18000, currency: "USD" },
   details: [
     { label: "Merchant", value: "Example Store", emphasized: false },
     { label: "Item", value: "Running shoes, model X, size 10", emphasized: false },

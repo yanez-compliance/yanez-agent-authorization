@@ -61,7 +61,8 @@ it links for the task at hand.
 Rules that must hold in any code you write:
 
 - A receipt authorizes nothing by itself. The action executor verifies the signature,
-  compares the signed terms with the proposed action by deep JSON equality, applies
+  verifies the approver's own signature over the decision, compares the signed terms
+  with the proposed action structurally, applies
   its own freshness policy, and consumes single-use receipts. Gate single-use actions
   on `consumed_now: true`, never on `valid: true` alone.
 - The `yak_` agent key comes from configuration (`YANEZ_AGENT_API_KEY` or a secret

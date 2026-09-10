@@ -15,8 +15,9 @@ supports.
 <div class="callout">
   <div class="callout-title">The one rule that matters</div>
   <p>A receipt authorizes nothing by itself. The <strong>action executor</strong> (the relying
-  party, not the agent) must verify the signature, compare the signed terms against the proposed
-  action by deep JSON equality, apply its own freshness policy, and consume single-use receipts.</p>
+  party, not the agent) must verify <strong>both signatures</strong> — Yanez's, and the approver's
+  own — compare the signed terms against the proposed action, apply its own freshness and
+  assurance policy, and consume single-use receipts.</p>
 </div>
 
 ## How it works
@@ -41,12 +42,14 @@ sequenceDiagram
    `yak_` agent API key. The key can ask, not act.
 2. **Yanez Pulse notifies the user.** A push notification reaches the user's device.
 3. **The user decides.** They approve or reject in the YID app, gated on a fresh biometric
-   scan. Approval produces a signed receipt.
+   scan. Their own key signs the decision, and approval produces a receipt carrying both
+   that signature and Yanez's: [user-signed approvals](user-signed-approvals.md).
 4. **The agent polls for the decision.** It long-polls the request until it is `approved`
    (with the receipt), `rejected`, or `expired`.
-5. **The relying party checks the receipt.** The action executor verifies the signature
-   offline against Yanez's public keys, compares the signed terms with the proposed action,
-   consumes the receipt when the action is single-use, and only then acts.
+5. **The relying party checks the receipt.** The action executor verifies Yanez's signature
+   offline against Yanez's public keys and the approver's signature against the key inside
+   the receipt, compares the signed terms with the proposed action, consumes the receipt
+   when the action is single-use, and only then acts.
 
 ## Start here
 
@@ -73,6 +76,10 @@ Two ways in. Pick one.
   <a class="card" href="{{ '/receipts/' | relative_url }}">
     <div class="card-title">Receipts</div>
     <div class="card-body">What the signed artifact contains, how it is signed, and how its keys rotate.</div>
+  </a>
+  <a class="card" href="{{ '/user-signed-approvals/' | relative_url }}">
+    <div class="card-title">User-signed approvals</div>
+    <div class="card-body">The approver's own signature: what changed in the schema, and the steps to verify both signatures.</div>
   </a>
   <a class="card" href="{{ '/action-enforcement/' | relative_url }}">
     <div class="card-title">Action enforcement</div>

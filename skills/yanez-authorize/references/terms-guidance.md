@@ -14,12 +14,13 @@ Every field is required on every action, including actions that move no money:
 
 ```json
 {
+  "schema_version": 1,
   "action": "purchase",
   "approval_title": "Purchase PEP Research queries",
   "summary": "Buy a bundle of 10 Yanez PEP Research queries",
   "merchant": "Yanez PEP Research",
   "currency": "USD",
-  "amount": {"minor_units": 100, "currency": "USD", "display": "$1.00"},
+  "amount": {"minor_units": 100, "currency": "USD"},
   "details": [
     {"label": "Merchant", "value": "Yanez PEP Research", "emphasized": false},
     {"label": "Bundle", "value": "10 PEP Research queries", "emphasized": false},
@@ -36,12 +37,17 @@ Rules:
   operations.
 - `approval_title` names the action, not your product. `summary` states the whole
   action in one line, including the amount.
+- `schema_version` is `1`, the integer. It is required, and there is no fallback to
+  permissive validation when it is missing.
 - `amount.minor_units` is a non-negative integer in the currency's minor unit: `100`
   under `USD` is $1.00, `100` under `JPY` is ¥100. Never a float, never a decimal
-  string, and never above 2^63 - 1, the largest value the app can decode.
-- `amount.currency` equals the top-level `currency`. `amount.display` is the same
-  number formatted for a human, derived from `minor_units` in one place so the two
-  can't drift.
+  string, and never above 2^53 - 1 — the largest integer a double round-trips exactly,
+  so a JavaScript verifier and a Python one cannot disagree about the value. The same
+  rule and bound apply to every other number anywhere in `terms`.
+- `amount.currency` equals the top-level `currency`. There is **no** `amount.display`:
+  the app formats the amount from `minor_units` and the currency's own exponent. Two
+  fields describing one amount can disagree, and the one the human reads was the one
+  that could lie.
 - `details` renders as a two-column table in array order, so the array order is the
   reading order. `label`, `value`, and `emphasized` are required on every entry.
   Emphasize the amount row. The array can be empty, but rows are what the approver
@@ -67,12 +73,13 @@ an amount:
 
 ```json
 {
+  "schema_version": 1,
   "action": "disclose_data",
   "approval_title": "Share your August health report",
   "summary": "Send the August health report to Example Clinic",
   "merchant": "Example Clinic",
   "currency": "USD",
-  "amount": {"minor_units": 0, "currency": "USD", "display": "No charge"},
+  "amount": {"minor_units": 0, "currency": "USD"},
   "details": [
     {"label": "Recipient", "value": "Example Clinic", "emphasized": false},
     {"label": "Report", "value": "August 2026 health report", "emphasized": true},
@@ -86,12 +93,13 @@ Permission change:
 
 ```json
 {
+  "schema_version": 1,
   "action": "grant_permission",
   "approval_title": "Give Example App your calendar",
   "summary": "Allow Example App to read calendar events for 7 days",
   "merchant": "Example App",
   "currency": "USD",
-  "amount": {"minor_units": 0, "currency": "USD", "display": "No charge"},
+  "amount": {"minor_units": 0, "currency": "USD"},
   "details": [
     {"label": "App", "value": "Example App", "emphasized": false},
     {"label": "Access", "value": "Read calendar events", "emphasized": true},

@@ -8,7 +8,8 @@ description: The object the human approves — every required field, and what ea
 `terms` is the object the human approves and the relying party enforces. The server
 validates its shape on create and answers `422` when a field is missing, blank, or the
 wrong type. Every field is also a promise to the approver, because the YID app renders
-them on the approval screen.
+them on the approval screen — and now because the approver's own key signs it. See
+[user-signed approvals](user-signed-approvals.md).
 
 Every field in the following table is required. A string field must hold at least one
 non-whitespace character. The whole object is capped at 4 KB of compact JSON, and the
@@ -16,11 +17,12 @@ server answers `413` above that.
 
 | Field | Type | Meaning |
 |---|---|---|
+| `schema_version` | integer | The profile version. Exactly `1`. Absent, non-integer, or any other value is a `422` — never a fallback to permissive validation |
 | `action` | string | What kind of action this is, such as `purchase`. Free-form for now. Keep it short, lowercase, and identical across identical operations, so a relying party can branch on it |
 | `approval_title` | string | The headline the YID app shows the approver. Name the action, not your product |
 | `summary` | string | The line under the title. State the whole action in one sentence, including the amount |
 | `merchant` | string | The seller's name, spelled the way the approver recognizes it |
-| `currency` | string | Currency of the action. Use the ISO 4217 alpha-3 code, such as `USD`. The server checks only that the string isn't blank |
+| `currency` | string | Currency of the action, as an ISO 4217 alpha-3 code such as `USD`. The server keeps an explicit allowlist of the currencies the product supports and answers `400` for anything else. A code the apps cannot format correctly would put an unreadable amount in front of the approver |
 | `amount` | object | What gets charged, described in the following section |
 | `details` | array | The rows the app renders as a table, described in the following section |
 
@@ -30,21 +32,27 @@ action. Non-money profiles are unsettled and this requirement can relax later.
 
 Extra keys are allowed at every level. Domain fields the relying party matches on, such
 as an item id, a resource id, or a scope list, go alongside the required ones; the
-server stores them untouched and they are compared with everything else at enforcement
-time. `details` is for what the human reads, extra keys are for what the executor
+server stores them untouched, the approver's signature covers them, and they are
+compared with everything else at enforcement time. Any number among them is subject to
+the same integer rule and the same bound as `minor_units`. `details` is for what the human reads, extra keys are for what the executor
 checks.
 
 ## amount
 
 | Field | Type | Meaning |
 |---|---|---|
-| `minor_units` | integer | The amount as a whole number of the currency's minor unit, which is the smallest denomination the currency charges in. Under `USD` the minor unit is the cent, so `18000` is $180.00. Under a zero-decimal currency such as `JPY` the minor unit is the yen, so `18000` is ¥18,000. Must be a non-negative integer no greater than 9223372036854775807, which is 2^63 - 1 and the largest value the YID app can decode. Never a float and never a decimal string |
+| `minor_units` | integer | The amount as a whole number of the currency's minor unit, which is the smallest denomination the currency charges in. Under `USD` the minor unit is the cent, so `18000` is $180.00. Under a zero-decimal currency such as `JPY` the minor unit is the yen, so `18000` is ¥18,000. Must be a non-negative integer no greater than 9007199254740991, which is 2^53 - 1. Never a float and never a decimal string |
 | `currency` | string | Must equal the top-level `currency` exactly |
-| `display` | string | The amount as the approver reads it, formatted for the currency, such as `"$180.00"` |
 
-**Caution:** `display` is what the human sees, and `minor_units` is what gets charged.
-The server can't tell you the two disagree. Derive `display` from `minor_units` and
-`currency` in one place instead of passing them in separately.
+**`display` was removed.** The app formats the amount itself, from `minor_units` and the
+currency's own exponent. Two fields describing one amount can disagree, and the one the
+human read was the one that could lie — the server had no way to tell you. Send the
+number; let the app render it.
+
+The 2^53 - 1 bound is the largest integer a double round-trips exactly, so a JavaScript
+verifier and a Python one cannot disagree about the value they are comparing. The same
+bound applies to **every** number anywhere in `terms`, and every one of them must be an
+integer.
 
 ## details
 
@@ -75,12 +83,13 @@ an empty name. Any non-string value is a `422` as well.
 
 ```json
 {
+  "schema_version": 1,
   "action": "purchase",
   "approval_title": "Purchase running shoes",
   "summary": "Buy running shoes for $180.00 at Example Store",
   "merchant": "Example Store",
   "currency": "USD",
-  "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+  "amount": {"minor_units": 18000, "currency": "USD"},
   "details": [
     {"label": "Merchant", "value": "Example Store", "emphasized": false},
     {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": false},
@@ -98,11 +107,16 @@ Profiles per action type (purchase, disclosure, permission):
 
 ## Terms are compared whole
 
-Every field travels into the receipt as `yanez_terms` and is compared by deep JSON
-equality at enforcement time, display strings included. Re-titling an approval screen
-or reformatting `display` produces terms that no longer match what the action executor
-expects, so build the object once and hand the same object to both the create call and
-the executor: [receipts](receipts.md).
+Every field travels into the receipt as `yanez_terms`, and the same object travels
+inside the bytes the approver signed. Both are compared structurally at enforcement
+time. Re-titling an approval screen produces terms that no longer match what the action
+executor expects, so build the object once and hand the same object to both the create
+call and the executor: [receipts](receipts.md).
+
+"Structurally" has precise rules — a boolean is never a number, `-0` equals `0`, and
+array order matters. Use the SDK's `terms_equal` / `termsEqual` rather than a stock deep
+-equality helper, which will disagree with the other language on at least one of those:
+[comparing terms](user-signed-approvals.md#comparing-terms).
 
 If any material field changes after approval — counterparty, resource, amount,
 currency, destination, scope, deadline — the old receipt must not be used. New terms

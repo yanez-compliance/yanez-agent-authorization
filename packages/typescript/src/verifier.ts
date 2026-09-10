@@ -1,5 +1,3 @@
-import { isDeepStrictEqual } from "node:util";
-
 import { decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 
 import { FetchLike, raiseFor, requireTrustedOrigin } from "./client.js";
@@ -7,9 +5,12 @@ import {
   AlreadyConsumedError,
   ConsentPolicyError,
   ReceiptVerificationError,
+  ReservationHeldError,
   TransportError,
+  UserSignatureError,
 } from "./errors.js";
 import { IntrospectionResult, Terms, VerifiedReceipt } from "./models.js";
+import { UserProofError, termsEqual, verifyUserProof } from "./proof.js";
 
 const KEY_CACHE_TTL_MS = 600_000;
 // An unknown kid may refresh the key set, but not more often than this: a flood
@@ -24,6 +25,14 @@ const REQUIRED_CLAIMS = [
   "yanez_match_overlap", "yanez_terms",
 ] as const;
 const STRING_CLAIMS = ["sub", "jti", "yanez_agent_key_id"] as const;
+// The five §4.6 proof claims are equally required, but `verifyUserProof` enforces them
+// so their absence throws `UserSignatureError` rather than the generic missing-claim
+// error. A receipt minted before signed approvals fails there, and is never reported as
+// a user-signed approval.
+
+/** Ascending assurance. `medium` satisfies a `medium` floor and a `low` one, never `high`. */
+const TIER_ORDER = ["low", "medium", "high"] as const;
+export type AssuranceTier = (typeof TIER_ORDER)[number];
 
 export interface ReceiptVerifierOptions {
   timeoutSeconds?: number;
@@ -38,6 +47,12 @@ export interface VerifyOptions {
   /** Bind the receipt to the user and agent key this relying party expects. */
   expectedSub?: string;
   expectedAgentKeyId?: string;
+  /**
+   * Your assurance floor for the value at risk. Falling short throws
+   * `ConsentPolicyError`, not a verification error: the receipt is genuine, it just is
+   * not strong enough for what you were about to do.
+   */
+  minAssuranceTier?: AssuranceTier;
 }
 
 function errName(e: unknown): string {
@@ -129,12 +144,17 @@ export class ReceiptVerifier {
   // --- verification ---
 
   /**
-   * Signature + profile + exact terms + freshness + consent bound.
+   * Both signatures + profile + exact terms + freshness + consent bound.
    *
    * Freshness (`maxAgeSeconds`, against `yanez_decided_at`) and the user's
    * `yanez_consent_not_after` are THIS relying party's gate on acting; neither
    * affects whether the receipt is genuine. There is deliberately no `exp`
    * requirement — a receipt still verifies years later, when the dispute happens.
+   *
+   * Two signatures are checked, not one. After the Yanez JWT verifies, the approver's
+   * own BLS signature is verified over the exact bytes they signed and every field in
+   * those bytes is checked against this receipt (§4.7 steps 4-5). A failure there
+   * throws `UserSignatureError`.
    */
   async verify(
     artifact: string,
@@ -207,7 +227,7 @@ export class ReceiptVerifier {
     if (terms === null || typeof terms !== "object" || Array.isArray(terms)) {
       throw new ReceiptVerificationError("yanez_terms must be an object");
     }
-    if (!isDeepStrictEqual(claims.yanez_terms, expectedTerms)) {
+    if (!termsEqual(claims.yanez_terms, expectedTerms)) {
       // Deep equality, no ignored or wildcard fields: changed terms mean a new
       // authorization, never a reused receipt.
       throw new ReceiptVerificationError("terms do not match the approved terms");
@@ -226,6 +246,27 @@ export class ReceiptVerifier {
       throw new ConsentPolicyError("past the user's consent bound");
     }
 
+    // The user's own signature, last: everything above is cheap, and this is the only
+    // step that does elliptic-curve work.
+    let userProof;
+    try {
+      userProof = verifyUserProof(claims, { expectedIssuer: this.issuer });
+    } catch (e) {
+      if (e instanceof UserProofError) throw new UserSignatureError(e.message);
+      throw e;
+    }
+
+    const tier = userProof.assuranceTier;
+    const floor = options.minAssuranceTier;
+    if (floor !== undefined) {
+      const reached = TIER_ORDER.indexOf(tier as AssuranceTier);
+      if (reached < 0) throw new UserSignatureError(`unknown assurance tier "${tier}"`);
+      if (reached < TIER_ORDER.indexOf(floor)) {
+        throw new ConsentPolicyError(
+          `approval is ${tier} assurance, policy requires ${floor}`);
+      }
+    }
+
     return {
       sub: claims.sub as string,
       jti: claims.jti as string,
@@ -233,22 +274,44 @@ export class ReceiptVerifier {
       decidedAt,
       matchOverlap: overlap,
       terms: claims.yanez_terms as Terms,
+      assuranceTier: tier,
+      userProof,
       consentNotAfter: notAfter,
+      signedAt: userProof.signedAt,
     };
   }
 
-  /** Online check; `consume: true` permanently spends the receipt's jti. */
+  /**
+   * Online check; `consume: true` permanently spends the receipt's jti.
+   *
+   * `consumerToken` is REQUIRED when consuming and rejected otherwise. It is your own
+   * opaque, durable string identifying this attempt, and you must reuse the same one
+   * when retrying after a lost response — that is how the server tells your earlier
+   * attempt from another holder's. The server never generates one: a server-minted
+   * token would be lost with the response it travelled in, which is the exact failure
+   * the token exists to survive.
+   *
+   * Inspection is not consumption. A polling or audit caller passes neither.
+   */
   async introspect(
     artifact: string,
-    options: { consume?: boolean; signal?: AbortSignal } = {},
+    options: { consume?: boolean; consumerToken?: string; signal?: AbortSignal } = {},
   ): Promise<IntrospectionResult> {
-    const { consume = false, signal } = options;
+    const { consume = false, consumerToken, signal } = options;
+    if (consume) {
+      if (consumerToken === undefined || consumerToken.trim() === "") {
+        throw new Error("consumerToken is required when consume is true");
+      }
+    } else if (consumerToken !== undefined) {
+      throw new Error("consumerToken is only meaningful when consume is true");
+    }
     let response: Response;
     try {
       response = await this.fetchFn(`${this.baseUrl}/api/authz/introspect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artifact, consume }),
+        body: JSON.stringify(
+          consume ? { artifact, consume, consumer_token: consumerToken } : { artifact, consume }),
         redirect: "manual",
         signal: signal ?? AbortSignal.timeout(this.timeoutSeconds * 1000),
       });
@@ -267,30 +330,54 @@ export class ReceiptVerifier {
       decidedAt: data.decided_at ?? undefined,
       consentNotAfter: data.consent_not_after ?? undefined,
       terms: data.terms ?? undefined,
+      assuranceTier: data.assurance_tier ?? undefined,
+      userPublicKey: data.user_public_key ?? undefined,
+      userSignature: data.user_signature ?? undefined,
+      signedMessage: data.signed_message ?? undefined,
+      userSigAlg: data.user_sig_alg ?? undefined,
     };
   }
 
   /**
    * Everything the action boundary needs, in order — but never the action itself.
    *
-   * For a single-use action pass `consume: true` and call this immediately before
-   * executing. If the action then fails, the receipt stays spent: retry means a
-   * new authorization, because consumption and a third-party side effect cannot
+   * For a single-use action pass `consume: true` with your `consumerToken`, and call
+   * this immediately before executing. Write the token and an idempotency key derived
+   * from `jti` durably BEFORE calling: both must survive the crash they exist to
+   * recover from.
+   *
+   * Three consume outcomes an executor must tell apart:
+   *
+   * - Resolves — you won the reservation. Execute, carrying the idempotency key.
+   * - `ReservationHeldError` — you already held it from an attempt whose response was
+   *   lost. Reconcile with the ORIGINAL idempotency key; the action may have happened.
+   *   Never request a new approval.
+   * - `AlreadyConsumedError` — another holder won. Never execute.
+   *
+   * If the action fails after a successful consume, the receipt stays spent: retry
+   * means a new authorization, because consumption and a third-party side effect cannot
    * be one atomic transaction.
    */
   async authorizeAction(
     artifact: string,
     expectedTerms: Terms,
     maxAgeSeconds: number,
-    options: { consume: boolean; signal?: AbortSignal } & Omit<VerifyOptions, "now">,
+    options: { consume: boolean; consumerToken?: string; signal?: AbortSignal }
+      & Omit<VerifyOptions, "now">,
   ): Promise<VerifiedReceipt> {
-    const { expectedSub, expectedAgentKeyId } = options;
+    const { expectedSub, expectedAgentKeyId, minAssuranceTier } = options;
     const receipt = await this.verify(artifact, expectedTerms, maxAgeSeconds,
-      { expectedSub, expectedAgentKeyId });
+      { expectedSub, expectedAgentKeyId, minAssuranceTier });
     if (options.consume) {
-      const result = await this.introspect(artifact, { consume: true, signal: options.signal });
+      const result = await this.introspect(artifact, {
+        consume: true, consumerToken: options.consumerToken, signal: options.signal });
       if (result.valid && result.reason === "already_consumed") {
         throw new AlreadyConsumedError("receipt was already spent");
+      }
+      if (result.valid && result.reason === "reservation_held") {
+        throw new ReservationHeldError(
+          "this consumer already holds the reservation; reconcile with the original "
+          + "idempotency key rather than re-approving", receipt);
       }
       if (result.valid && result.reason === "consent_expired") {
         throw new ConsentPolicyError("past the user's consent bound");

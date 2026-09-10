@@ -16,7 +16,9 @@ this skill                 tells the model when and how to ask
 - The enforcement boundary is the action executor, never this skill and never an MCP
   status field. Its trusted API takes both the proposed action and the receipt,
   reconstructs the expected terms, and verifies before executing. Single-use actions
-  consume the receipt (introspection with `consume: true`) immediately before acting.
+  consume the receipt (introspection with `consume: true` and your own durable
+  `consumer_token`) immediately before acting. Verifying means BOTH signatures: Yanez's
+  over the receipt, and the approver's own over the decision they made.
 - Verification and permission to act are different questions. A receipt verifies
   forever — it is durable evidence. Whether it may be ACTED on now is gated by the
   relying party's freshness policy (`yanez_decided_at`), the consent bound the agent

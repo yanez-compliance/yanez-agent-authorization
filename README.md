@@ -38,7 +38,7 @@ checkout with the commands under Development.
 ## The one rule that matters
 
 A receipt authorizes nothing by itself. The **action executor** must verify the
-signature, compare the signed terms with the proposed action by deep JSON equality,
+both signatures, compare the signed terms with the proposed action structurally,
 apply its own freshness policy, and consume single-use receipts.
 [Action enforcement](docs/action-enforcement.md) is the contract for that boundary.
 

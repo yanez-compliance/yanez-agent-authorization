@@ -1,6 +1,6 @@
 {
   "name": "@yanez/agent-authorization",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Yanez agent authorization SDK: request user approval and verify signed receipts.",
   "license": "MIT",
   "repository": {
@@ -18,7 +18,8 @@
     "agent",
     "human-approval",
     "eddsa",
-    "jws"
+    "jws",
+    "bls12-381"
   ],
   "type": "module",
   "main": "dist/src/index.js",
@@ -43,6 +44,7 @@
     "test": "tsc -p tsconfig.json && node --test \"dist/test/*.test.js\""
   },
   "dependencies": {
+    "@noble/curves": "^2.4.0",
     "jose": "6.2.10"
   },
   "devDependencies": {

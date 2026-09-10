@@ -25,6 +25,8 @@ from yanez_authz import (
     AuthorizationClient,
     ConsentPolicyError,
     ReceiptVerifier,
+    ReservationHeldError,
+    UserSignatureError,
     YanezAuthzError,
 )
 
@@ -81,17 +83,51 @@ async def _cmd_wait(args) -> Any:
         return await client.wait_for_authorization(args.request_id, args.timeout)
 
 
+def _receipt_view(receipt) -> dict:
+    """A flat, JSON-safe view of a verified receipt.
+
+    `VerifiedReceipt` carries the signed message as raw bytes, which no JSON encoder
+    will take, and the whole decoded envelope, which is too much for a terminal. Report
+    what an operator reading this output needs: who approved, at what assurance, and
+    which key to look up if they want to check it against the registry.
+    """
+    proof = receipt.user_proof
+    return {
+        "sub": receipt.sub,
+        "jti": receipt.jti,
+        "agent_key_id": receipt.agent_key_id,
+        "decided_at": receipt.decided_at,
+        "signed_at": receipt.signed_at,
+        "match_overlap": receipt.match_overlap,
+        "consent_not_after": receipt.consent_not_after,
+        "assurance_tier": receipt.assurance_tier,
+        "user_public_key": proof.public_key,
+        "user_sig_alg": "BLS12-381-G2-basic",
+        "user_signature_verified": True,
+        "terms": receipt.terms,
+    }
+
+
 def _cmd_verify(args) -> Any:
+    if args.consume and not (args.consumer_token or "").strip():
+        # Usage, not refusal: the caller has not told us who is consuming, and a token
+        # we invented here could not survive the lost response it exists for.
+        raise SystemExit("error: --consume requires --consumer-token "
+                         "(your own durable string, reused on every retry)")
+    if args.consumer_token and not args.consume:
+        raise SystemExit("error: --consumer-token is only meaningful with --consume")
     verifier = ReceiptVerifier(_base_url(args), args.issuer)
     receipt = verifier.authorize_action(
         _read_text(args.artifact_file),
         _read_json(args.expected_terms_file),
         args.max_age,
         consume=args.consume,
+        consumer_token=args.consumer_token if args.consume else None,
         expected_sub=args.expected_sub,
         expected_agent_key_id=args.expected_agent_key_id,
+        min_assurance_tier=args.min_assurance_tier,
     )
-    return receipt
+    return _receipt_view(receipt)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -115,12 +151,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("request_id")
     p.add_argument("--timeout", type=int, required=True, metavar="SECONDS")
 
-    p = sub.add_parser("verify", help="verify (and optionally consume) a receipt")
+    p = sub.add_parser("verify",
+                       help="verify both signatures (and optionally consume) a receipt")
     p.add_argument("--artifact-file", required=True, help="compact JWS; '-' for stdin")
     p.add_argument("--expected-terms-file", required=True)
     p.add_argument("--issuer", required=True)
     p.add_argument("--max-age", type=int, required=True, metavar="SECONDS")
     p.add_argument("--consume", action="store_true")
+    p.add_argument("--consumer-token", default=None, metavar="TOKEN",
+                   help="required with --consume: your own durable string identifying "
+                        "this attempt, reused verbatim on every retry")
+    p.add_argument("--min-assurance-tier", default=None,
+                   choices=("low", "medium", "high"),
+                   help="refuse an approval below this assurance tier")
     p.add_argument("--expected-sub", default=None, metavar="YID",
                    help="refuse unless this YID approved (bind the receipt to the account)")
     p.add_argument("--expected-agent-key-id", default=None, metavar="YAK_ID",
@@ -136,6 +179,18 @@ def main(argv: Optional[list[str]] = None) -> int:
         else:
             runner = {"request": _cmd_request, "get": _cmd_get, "wait": _cmd_wait}
             result = asyncio.run(runner[args.command](args))
+    except UserSignatureError as e:
+        # The loudest failure this tool has. The Yanez signature may be perfectly good;
+        # the person did not sign this.
+        print(f"REFUSED, the approver did not sign this decision: {e}", file=sys.stderr)
+        return 1
+    except ReservationHeldError as e:
+        # Not a failure. This caller already holds the reservation from an attempt whose
+        # response was lost, and the downstream action may already have happened.
+        print(f"reservation already held by this consumer: {e}", file=sys.stderr)
+        print("reconcile downstream with your original idempotency key; "
+              "do not request a new approval", file=sys.stderr)
+        return 1
     except ConsentPolicyError as e:
         # Distinct wording: the receipt is genuine; only permission to act is refused.
         print(f"refused for action: {e} (the receipt itself remains valid evidence)",

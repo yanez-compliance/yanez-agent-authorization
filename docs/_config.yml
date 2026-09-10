@@ -42,5 +42,7 @@ nav:
         url: /terms/
       - title: Receipts
         url: /receipts/
+      - title: User-signed approvals
+        url: /user-signed-approvals/
       - title: Action enforcement
         url: /action-enforcement/

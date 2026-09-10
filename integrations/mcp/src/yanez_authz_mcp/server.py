@@ -27,8 +27,12 @@ Yanez turns "the user approved" into portable, signed proof. Rules:
 - The returned artifact is sensitive bearer proof: pass it to the protected action
   tool. An MCP status of "approved" is NOT authorization by itself — only the
   verified artifact is.
-- Yanez signed a receipt asserting that a fresh biometric scan matching this YID
-  approved these terms. The human did not cryptographically sign anything.
+- The receipt carries TWO signatures: Yanez's, asserting that a fresh biometric scan
+  matching this YID approved these terms, and the approver's own, made on their device
+  over the complete decision. You cannot produce either one. Do not attempt to
+  assemble, edit, or explain away a receipt — hand it to the action tool unchanged.
+- The receipt names the assurance tier the approver's scan reached. The tier floor
+  belongs to the action executor, not to you.
 """
 
 
@@ -61,12 +65,16 @@ def build_server(settings: Optional[Settings] = None,
         internal retry.
 
         `terms` must carry all of the following, or the server answers 422 naming every
-        offending field: action, approval_title, summary, merchant, currency (non-blank
-        strings); amount as {minor_units, currency, display}, with minor_units a whole
-        number of the currency's minor unit (18000 is $180.00 under USD) and currency
-        equal to the top-level one; details as an array of {label, value, emphasized}
-        rows the app renders in order (may be empty). agent_name is optional. The
-        approver sees these fields verbatim, and they are embedded in the receipt."""
+        offending field: schema_version, the integer 1; action, approval_title, summary,
+        merchant (non-blank strings); currency, an ISO 4217 code the deployment
+        supports; amount as {minor_units, currency}, with minor_units a whole number of
+        the currency's minor unit (18000 is $180.00 under USD, and ¥18,000 under JPY,
+        which has no minor unit) and currency equal to the top-level one; details as an
+        array of {label, value, emphasized} rows the app renders in order (may be
+        empty). agent_name is optional. Every number anywhere in terms must be an
+        integer no greater than 2^53-1. There is no amount.display: the app formats the
+        amount itself. The approver sees these fields verbatim, they are embedded in the
+        receipt, and the approver's own key signs them."""
         try:
             pending = await (await _client()).request_authorization(
                 terms, decision_window_seconds=decision_window_seconds,

@@ -17,12 +17,13 @@ Authorization: Bearer yak_...
 Idempotency-Key: b1946ac92492d234
 Content-Type: application/json
 
-{"terms": {"action": "purchase",
+{"terms": {"schema_version": 1,
+           "action": "purchase",
            "approval_title": "Purchase running shoes",
            "summary": "Buy running shoes for $180.00 at Example Store",
            "merchant": "Example Store",
            "currency": "USD",
-           "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+           "amount": {"minor_units": 18000, "currency": "USD"},
            "details": [{"label": "Merchant", "value": "Example Store", "emphasized": false},
                        {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": false},
                        {"label": "Amount", "value": "$180.00", "emphasized": true}]},
@@ -75,9 +76,14 @@ GET /api/authz/public-keys
 
 Flat Ed25519 JWKs. Verify the artifact offline: pin `alg=EdDSA`, select the key by the
 header `kid` (refresh on an unknown kid, at most once per 30 s), check your exact
-expected `iss`, compare `yanez_terms` with your expected terms by deep equality, and
-check that `sub` is the YID your records tie to the account being acted on. Claim
-profile and freshness rules: [receipts](receipts.md).
+expected `iss`, compare `yanez_terms` with your expected terms structurally, and check
+that `sub` is the YID your records tie to the account being acted on. Claim profile and
+freshness rules: [receipts](receipts.md).
+
+Then verify the **second** signature. The receipt carries the approver's own BLS
+signature over `yanez_signed_message`, and checking it — plus every field inside those
+bytes — is what makes the receipt more than a Yanez assertion. A JWT library will not do
+this for you: [user-signed approvals](user-signed-approvals.md).
 
 ## 4. Consume (action executor, single-use actions)
 
@@ -85,13 +91,18 @@ profile and freshness rules: [receipts](receipts.md).
 POST /api/authz/introspect
 Content-Type: application/json
 
-{"artifact": "eyJ...", "consume": true}
+{"artifact": "eyJ...", "consume": true, "consumer_token": "<your durable token>"}
 ```
 
+`consumer_token` is required when consuming. It is your own opaque, durable string
+identifying this attempt — write it down before the call, and reuse it verbatim on every
+retry.
+
 `valid` answers only "is this receipt genuine" — a spent or consent-expired receipt
-stays `valid: true`. Gate the action on `consumed_now: true`. A repeat consume returns
-`reason: "already_consumed"`, `consumed_now: false`; never act on it.
+stays `valid: true`. Gate the action on `consumed_now: true`. A consume by another
+holder returns `reason: "already_consumed"`, `consumed_now: false`; never act on it.
 
 A receipt is bearer proof: never log it or put it in a URL. If the consume response is
-lost, a retry answers `already_consumed` whether your call or another spent it. Do not
-act; request a new approval.
+lost, retry with the **same** token: `reason: "reservation_held"` means your own earlier
+attempt won, so reconcile downstream with your original idempotency key rather than
+requesting a new approval. `already_consumed` means someone else holds it.

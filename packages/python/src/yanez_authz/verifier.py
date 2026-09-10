@@ -14,9 +14,12 @@ from yanez_authz.errors import (
     AlreadyConsumedError,
     ConsentPolicyError,
     ReceiptVerificationError,
+    ReservationHeldError,
     TransportError,
+    UserSignatureError,
 )
 from yanez_authz.models import IntrospectionResult, VerifiedReceipt
+from yanez_authz.proof import UserProofError, terms_equal, verify_user_proof
 
 _KEY_CACHE_TTL_SECONDS = 600
 # An unknown kid may force one early refresh (key rotation), but a stream of garbage
@@ -26,6 +29,14 @@ _CLOCK_SKEW_SECONDS = 60
 
 _REQUIRED_CLAIMS = ("sub", "jti", "iat", "yanez_agent_key_id", "yanez_decision",
                     "yanez_decided_at", "yanez_match_overlap", "yanez_terms")
+
+# The five §4.6 proof claims are equally required, but `verify_user_proof` enforces
+# them so their absence raises `UserSignatureError` rather than the generic missing-claim
+# error. A receipt minted before signed approvals fails there, and is never reported as
+# a user-signed approval.
+
+#: Ascending assurance. `medium` satisfies a `medium` floor and a `low` one, never `high`.
+_TIER_ORDER = ("low", "medium", "high")
 _STRING_CLAIMS = ("sub", "jti", "yanez_agent_key_id")
 # NumericDate claims the SDK does arithmetic on; a signed string here must be a typed
 # rejection, never a TypeError or a comparison that silently passes.
@@ -34,20 +45,6 @@ _INTEGER_CLAIMS = ("iat", "yanez_decided_at", "yanez_consent_not_after")
 
 def _b64url_decode(s: str) -> bytes:
     return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
-
-
-def _terms_equal(a: Any, b: Any) -> bool:
-    """Deep JSON equality with bool distinct from int, the verdict the TypeScript SDK's
-    isDeepStrictEqual reaches; plain `==` would let {"n": true} match {"n": 1}."""
-    if isinstance(a, bool) or isinstance(b, bool):
-        return isinstance(a, bool) and isinstance(b, bool) and a == b
-    if isinstance(a, dict) and isinstance(b, dict):
-        return a.keys() == b.keys() and all(_terms_equal(a[k], b[k]) for k in a)
-    if isinstance(a, list) and isinstance(b, list):
-        return len(a) == len(b) and all(map(_terms_equal, a, b))
-    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-        return a == b  # JSON has one number type
-    return type(a) is type(b) and a == b
 
 
 class ReceiptVerifier:
@@ -119,8 +116,9 @@ class ReceiptVerifier:
     def verify(self, artifact: str, expected_terms: dict[str, Any],
                max_age_seconds: int, *, now: Optional[float] = None,
                expected_sub: Optional[str] = None,
-               expected_agent_key_id: Optional[str] = None) -> VerifiedReceipt:
-        """Signature + profile + exact terms + freshness + consent bound.
+               expected_agent_key_id: Optional[str] = None,
+               min_assurance_tier: Optional[str] = None) -> VerifiedReceipt:
+        """Both signatures + profile + exact terms + freshness + consent bound.
 
         Freshness (`max_age_seconds`, against `yanez_decided_at`) and the user's
         `yanez_consent_not_after` are THIS relying party's gate on acting; neither
@@ -130,7 +128,19 @@ class ReceiptVerifier:
         A genuine receipt says that *some* YID approved these terms. When the terms do
         not name the account, pass `expected_sub` (and/or `expected_agent_key_id`) so
         an approval by one user can never authorize an action for another.
+
+        Two signatures are checked, not one. After the Yanez JWT verifies, the
+        approver's own BLS signature is verified over the exact bytes they signed and
+        every field in those bytes is checked against this receipt (§4.7 steps 4-5). A
+        failure there raises `UserSignatureError`.
+
+        `min_assurance_tier` is your floor for the value at risk — `"low"`, `"medium"`,
+        or `"high"`. It is a policy gate, so falling short raises `ConsentPolicyError`,
+        not a verification error: the receipt is genuine, it just is not strong enough
+        for what you were about to do.
         """
+        if min_assurance_tier is not None and min_assurance_tier not in _TIER_ORDER:
+            raise ValueError(f"min_assurance_tier must be one of {_TIER_ORDER}")
         current = self._now() if now is None else now
 
         try:
@@ -176,7 +186,7 @@ class ReceiptVerifier:
             raise ReceiptVerificationError("yanez_match_overlap must be a non-negative integer")
         if not isinstance(claims["yanez_terms"], dict):
             raise ReceiptVerificationError("yanez_terms must be an object")
-        if not _terms_equal(claims["yanez_terms"], expected_terms):
+        if not terms_equal(claims["yanez_terms"], expected_terms):
             # Deep equality, no ignored or wildcard fields: changed terms mean a new
             # authorization, never a reused receipt.
             raise ReceiptVerificationError("terms do not match the approved terms")
@@ -191,44 +201,100 @@ class ReceiptVerifier:
         if not_after is not None and current > not_after:
             raise ConsentPolicyError("past the user's consent bound")
 
+        # The user's own signature, last: everything above is cheap, and this is the
+        # only step that does elliptic-curve work.
+        try:
+            user_proof = verify_user_proof(claims, expected_issuer=self._issuer)
+        except UserProofError as e:
+            raise UserSignatureError(str(e)) from None
+
+        tier = user_proof.assurance_tier
+        if min_assurance_tier is not None:
+            if tier not in _TIER_ORDER:
+                raise UserSignatureError(f"unknown assurance tier {tier!r}")
+            if _TIER_ORDER.index(tier) < _TIER_ORDER.index(min_assurance_tier):
+                raise ConsentPolicyError(
+                    f"approval is {tier} assurance, policy requires {min_assurance_tier}")
+
         return VerifiedReceipt(
             sub=claims["sub"], jti=claims["jti"],
             agent_key_id=claims["yanez_agent_key_id"], decided_at=decided_at,
             match_overlap=overlap, terms=claims["yanez_terms"],
+            assurance_tier=tier, user_proof=user_proof,
             consent_not_after=not_after,
         )
 
-    def introspect(self, artifact: str, *, consume: bool = False) -> IntrospectionResult:
-        """Online check; `consume=True` permanently spends the receipt's jti."""
+    def introspect(self, artifact: str, *, consume: bool = False,
+                   consumer_token: Optional[str] = None) -> IntrospectionResult:
+        """Online check; `consume=True` permanently spends the receipt's jti.
+
+        `consumer_token` is REQUIRED when consuming and rejected otherwise. It is your
+        own opaque, durable string identifying this attempt, and you must reuse the
+        same one when retrying after a lost response — that is how the server tells
+        your earlier attempt from another holder's. The server never generates one: a
+        server-minted token would be lost with the response it travelled in, which is
+        the exact failure the token exists to survive.
+
+        Inspection is not consumption. A polling or audit caller passes neither.
+        """
+        if consume:
+            if not consumer_token or not consumer_token.strip():
+                raise ValueError("consumer_token is required when consume=True")
+        elif consumer_token is not None:
+            raise ValueError("consumer_token is only meaningful when consume=True")
+        body: dict[str, Any] = {"artifact": artifact, "consume": consume}
+        if consume:
+            body["consumer_token"] = consumer_token
         try:
-            response = self._http.post("/api/authz/introspect",
-                                       json={"artifact": artifact, "consume": consume})
+            response = self._http.post("/api/authz/introspect", json=body)
         except httpx.HTTPError as e:
             raise TransportError(type(e).__name__) from None
         _raise_for(response, create=True)  # a 404 here means the feature is absent
         data = response.json()
         return IntrospectionResult(**{k: data.get(k) for k in (
             "valid", "reason", "consumed_now", "sub", "jti",
-            "decided_at", "consent_not_after", "terms")})
+            "decided_at", "consent_not_after", "terms",
+            "assurance_tier", "user_public_key", "user_signature",
+            "signed_message", "user_sig_alg")})
 
     def authorize_action(self, artifact: str, expected_terms: dict[str, Any],
                          max_age_seconds: int, *, consume: bool,
+                         consumer_token: Optional[str] = None,
                          expected_sub: Optional[str] = None,
-                         expected_agent_key_id: Optional[str] = None) -> VerifiedReceipt:
+                         expected_agent_key_id: Optional[str] = None,
+                         min_assurance_tier: Optional[str] = None) -> VerifiedReceipt:
         """Everything the action boundary needs, in order — but never the action itself.
 
-        For a single-use action pass consume=True and call this immediately before
-        executing. If the action then fails, the receipt stays spent: retry means a
-        new authorization, because consumption and a third-party side effect cannot
-        be one atomic transaction.
+        For a single-use action pass `consume=True` with your `consumer_token`, and
+        call this immediately before executing. Write the token and an idempotency key
+        derived from `jti` durably BEFORE calling: both must survive the crash they
+        exist to recover from.
+
+        Three consume outcomes an executor must tell apart:
+
+        - Returns normally — you won the reservation. Execute, carrying the
+          idempotency key.
+        - `ReservationHeldError` — you already held it from an attempt whose response
+          was lost. Reconcile with the ORIGINAL idempotency key; the action may have
+          happened. Never request a new approval.
+        - `AlreadyConsumedError` — another holder won. Never execute.
+
+        If the action fails after a successful consume, the receipt stays spent: retry
+        means a new authorization, because consumption and a third-party side effect
+        cannot be one atomic transaction.
         """
         receipt = self.verify(artifact, expected_terms, max_age_seconds,
                               expected_sub=expected_sub,
-                              expected_agent_key_id=expected_agent_key_id)
+                              expected_agent_key_id=expected_agent_key_id,
+                              min_assurance_tier=min_assurance_tier)
         if consume:
-            result = self.introspect(artifact, consume=True)
+            result = self.introspect(artifact, consume=True, consumer_token=consumer_token)
             if result.valid and result.reason == "already_consumed":
                 raise AlreadyConsumedError("receipt was already spent")
+            if result.valid and result.reason == "reservation_held":
+                raise ReservationHeldError(
+                    "this consumer already holds the reservation; reconcile with the "
+                    "original idempotency key rather than re-approving", receipt)
             if result.valid and result.reason == "consent_expired":
                 raise ConsentPolicyError("past the user's consent bound")
             if not result.valid:
