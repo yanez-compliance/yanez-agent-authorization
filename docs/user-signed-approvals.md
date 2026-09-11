@@ -21,7 +21,7 @@ This page covers what changed in the schema, and the steps to verify both signat
   <p>The five proof claims are <strong>required</strong>. A receipt minted before this
   change fails verification rather than being reported as an approval nobody signed.
   <code>consume</code> also gains a required <code>consumer_token</code>. The Python SDK moves to
-  <code>0.1.0b3</code> and the TypeScript SDK to <code>1.0.0</code>; see <a href="#upgrading">Upgrading</a>.</p>
+  <code>0.1.0b4</code> and the TypeScript SDK to <code>1.0.0</code>; see <a href="#upgrading">Upgrading</a>.</p>
 </div>
 
 ## What changed in the schema
@@ -348,7 +348,7 @@ to a legal identity; that path is not provided.
 
 ## Upgrading
 
-The Python SDK moves to `0.1.0b3` and the TypeScript SDK to `1.0.0`. Two breaking changes:
+The Python SDK moves to `0.1.0b4` and the TypeScript SDK to `1.0.0`. Two breaking changes:
 
 - **`consume` requires `consumer_token`.** An un-updated caller fails at the call site
   rather than silently producing a token that cannot survive a lost response.

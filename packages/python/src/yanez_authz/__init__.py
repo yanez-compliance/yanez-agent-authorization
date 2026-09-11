@@ -49,7 +49,7 @@ from yanez_authz.proof import (
 )
 from yanez_authz.verifier import ReceiptVerifier
 
-__version__ = "0.1.0b3"
+__version__ = "0.1.0b4"
 
 __all__ = [
     "AuthorizationClient", "ReceiptVerifier",
