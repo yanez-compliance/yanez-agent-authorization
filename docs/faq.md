@@ -20,3 +20,18 @@ It depends on the environment you are pointing at:
 | Production | `https://yid.yanez.ai` |
 
 Every route in the [HTTP quickstart](http-quickstart.md) hangs off this base URL.
+
+## How do I create a new API key for my agent?
+
+Open the YID app and go to **Settings → Agent Keys**.
+
+## How do I register?
+
+Today, registration requires scanning a QR code. Generate one from the site for
+your environment, or from a partner's site:
+
+| Environment | QR code source |
+|---|---|
+| Development | `https://sigtest.yanezcompliance.com` |
+| Test | `https://qrcode-ptest.yanezcompliance.com`, or a partner test site (Skylo, dFusion) |
+| Production | `https://qrcode.yanezcompliance.net`, or a partner production site (Skylo, dFusion) |
