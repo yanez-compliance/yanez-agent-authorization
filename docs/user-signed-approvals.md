@@ -207,7 +207,7 @@ receipt.user_proof.envelope # the full decoded message
 ```
 
 ```typescript
-import { ReceiptVerifier, UserSignatureError } from "@yanez/agent-authorization";
+import { ReceiptVerifier, UserSignatureError } from "@yanez.ai/agent-authorization";
 
 const verifier = new ReceiptVerifier("https://yid.yanez.ai", "https://yid.yanez.ai");
 
@@ -240,7 +240,7 @@ proof = verify_user_proof(claims, expected_issuer=ISSUER)                # steps
 
 ```typescript
 import { jwtVerify } from "jose";
-import { verifyUserProof } from "@yanez/agent-authorization";
+import { verifyUserProof } from "@yanez.ai/agent-authorization";
 
 const { payload } = await jwtVerify(artifact, key, { algorithms: ["EdDSA"], issuer: ISSUER });
 const proof = verifyUserProof(payload as Record<string, unknown>, { expectedIssuer: ISSUER });

@@ -10,7 +10,7 @@ The HTTP/OpenAPI contract is the source of truth; everything else here is an ada
 |---|---|---|
 | OpenAPI contract | `openapi/agent-authorization.openapi.yaml` | Raw HTTP clients in any language |
 | Python SDK | `packages/python/` (`yanez-agent-authorization`, import `yanez_authz`) | Custom agents and relying parties |
-| TypeScript SDK | `packages/typescript/` (`@yanez/agent-authorization`) | Node agents and relying parties |
+| TypeScript SDK | `packages/typescript/` (`@yanez.ai/agent-authorization`) | Node agents and relying parties |
 | CLI | `cli/` (`yanez-authz`) | Shell-capable agents; skill+CLI needs no MCP |
 | MCP server | `integrations/mcp/` (`yanez-authz-mcp`, stdio) | MCP-capable hosts |
 | Skill | `skills/yanez-authorize/` | Teaches an agent when and how to ask |
@@ -33,7 +33,7 @@ checkout with the commands under Development.
 | Python SDK | `pip install --pre yanez-agent-authorization` |
 | CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) |
 | MCP server | `pip install yanez-authz-mcp` (installs `yanez-authz-mcp`) |
-| TypeScript SDK | `npm install @yanez/agent-authorization` |
+| TypeScript SDK | `npm install @yanez.ai/agent-authorization` |
 
 ## The one rule that matters
 

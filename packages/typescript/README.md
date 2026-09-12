@@ -1,10 +1,10 @@
-# @yanez/agent-authorization
+# @yanez.ai/agent-authorization
 
 TypeScript SDK for Yanez agent authorization: request a human's approval of an
 action's terms, then verify the signed receipt before acting.
 
 ```sh
-npm install @yanez/agent-authorization
+npm install @yanez.ai/agent-authorization
 ```
 
 This package is pre-release and not yet published to npm.
@@ -12,7 +12,7 @@ This package is pre-release and not yet published to npm.
 ## Agent side
 
 ```ts
-import { AuthorizationClient } from "@yanez/agent-authorization";
+import { AuthorizationClient } from "@yanez.ai/agent-authorization";
 
 const client = new AuthorizationClient(process.env.YANEZ_BASE_URL!, process.env.YANEZ_AGENT_API_KEY!);
 const pending = await client.requestAuthorization({
@@ -35,7 +35,7 @@ deadline passes; rejection and expiry are returned as values.
 ## Relying-party side
 
 ```ts
-import { ReceiptVerifier } from "@yanez/agent-authorization";
+import { ReceiptVerifier } from "@yanez.ai/agent-authorization";
 
 const verifier = new ReceiptVerifier(baseUrl, expectedIssuer);
 const receipt = await verifier.authorizeAction(artifact, expectedTerms, 900, {
@@ -54,7 +54,7 @@ they made — and `verify` checks both. Already have a JWT library? Verify the r
 with it, then call the standalone helper for the half a JWT library cannot do:
 
 ```ts
-import { verifyUserProof } from "@yanez/agent-authorization";
+import { verifyUserProof } from "@yanez.ai/agent-authorization";
 const proof = verifyUserProof(claims, { expectedIssuer });
 ```
 

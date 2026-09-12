@@ -12,7 +12,7 @@ contract; pick the highest one your runtime supports.
 |---|---|---|
 | Anything that speaks HTTP | The OpenAPI contract directly | [HTTP quickstart](http-quickstart.md) |
 | Python agent or relying party | `yanez-agent-authorization` (import `yanez_authz`) | [examples/python/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/python) |
-| Node agent or relying party | `@yanez/agent-authorization` | [examples/typescript/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/typescript) |
+| Node agent or relying party | `@yanez.ai/agent-authorization` | [examples/typescript/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/typescript) |
 | Shell-capable coding agent | `yanez-authz` CLI + the `yanez-authorize` skill | [examples/skill-cli/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/skill-cli) |
 | MCP-capable host | `yanez-authz-mcp` (stdio) + the skill | [examples/mcp/](https://github.com/yanez-compliance/yanez-agent-authorization/tree/main/examples/mcp) |
 
@@ -56,4 +56,4 @@ install them from a checkout. See Development in the
 | Python SDK | `pip install --pre yanez-agent-authorization` | PyPI, pre-release |
 | CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) | Not published; install from a checkout |
 | MCP server | `pip install yanez-authz-mcp` | Not published; install from a checkout |
-| TypeScript SDK | `npm install @yanez/agent-authorization` | Not published; install from a checkout |
+| TypeScript SDK | `npm install @yanez.ai/agent-authorization` | Not published; install from a checkout |
