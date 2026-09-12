@@ -4,10 +4,10 @@ TypeScript SDK for Yanez agent authorization: request a human's approval of an
 action's terms, then verify the signed receipt before acting.
 
 ```sh
-npm install @yanez.ai/agent-authorization
+npm install @yanez.ai/agent-authorization@beta
 ```
 
-This package is pre-release and not yet published to npm.
+This package is pre-release, so releases publish under the `beta` dist-tag.
 
 ## Agent side
 

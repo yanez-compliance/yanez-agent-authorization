@@ -47,8 +47,8 @@ For a reproducible install, pin the exact build instead, for example
 [release history](https://pypi.org/project/yanez-agent-authorization/#history) lists
 every published version.
 
-The CLI, the MCP server, and the TypeScript SDK are not published yet. Until they are,
-install them from a checkout. See Development in the
+The CLI and the MCP server are not published yet. Until they are, install them from
+a checkout. See Development in the
 [repository README](https://github.com/yanez-compliance/yanez-agent-authorization#development).
 
 | Path | Install | Status |
@@ -56,4 +56,4 @@ install them from a checkout. See Development in the
 | Python SDK | `pip install --pre yanez-agent-authorization` | PyPI, pre-release |
 | CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) | Not published; install from a checkout |
 | MCP server | `pip install yanez-authz-mcp` | Not published; install from a checkout |
-| TypeScript SDK | `npm install @yanez.ai/agent-authorization` | Not published; install from a checkout |
+| TypeScript SDK | `npm install @yanez.ai/agent-authorization@beta` | npm, pre-release |
