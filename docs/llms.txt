@@ -23,6 +23,7 @@ Key facts:
 - [Receipts](https://raw.githubusercontent.com/yanez-compliance/yanez-agent-authorization/main/docs/receipts.md): The claim profile of the signed receipt, how Yanez signs it, and how verification keys rotate
 - [Action enforcement](https://raw.githubusercontent.com/yanez-compliance/yanez-agent-authorization/main/docs/action-enforcement.md): The contract for the boundary that turns a verified receipt into an action
 - [User-signed approvals](https://raw.githubusercontent.com/yanez-compliance/yanez-agent-authorization/main/docs/user-signed-approvals.md): The approver's own signature: what changed in the schema, and the steps to verify both signatures
+- [FAQ](https://raw.githubusercontent.com/yanez-compliance/yanez-agent-authorization/main/docs/faq.md): Where to find your YID, and the base URL for each environment
 
 ## API contract
 

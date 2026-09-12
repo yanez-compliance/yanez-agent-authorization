@@ -36,6 +36,8 @@ nav:
         url: /integration-options/
       - title: HTTP quickstart
         url: /http-quickstart/
+      - title: FAQ
+        url: /faq/
   - section: Concepts
     items:
       - title: Terms
