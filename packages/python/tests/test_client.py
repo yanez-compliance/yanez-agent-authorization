@@ -23,12 +23,13 @@ from yanez_authz import (
 BASE = "https://yanez.test"
 KEY = "yak_abc123abc123_s3cr3t-value"
 TERMS = {
+    "schema_version": 1,
     "action": "purchase",
     "approval_title": "Purchase running shoes",
     "summary": "Buy running shoes for $180.00 at Example Store",
     "merchant": "Example Store",
     "currency": "USD",
-    "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+    "amount": {"minor_units": 18000, "currency": "USD"},
     "details": [
         {"label": "Merchant", "value": "Example Store", "emphasized": False},
         {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": False},
@@ -214,6 +215,35 @@ def test_long_poll_sends_the_wait_query(http_fixtures):
 
     asyncio.run(main())
     assert seen["url"] == f"{BASE}/api/agent/authorizations/azr_x?wait=25"
+
+
+def test_user_keys_returns_the_rows_for_key_is_registered(user_keys):
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers.get("Authorization")
+        return httpx.Response(200, json=user_keys)
+
+    async def main():
+        async with _client(handler) as client:
+            return await client.user_keys()
+
+    result = asyncio.run(main())
+    assert seen == {"url": f"{BASE}/api/agent/user_keys", "auth": f"Bearer {KEY}"}
+    assert result.yid == user_keys["yid"] and result.keys == user_keys["keys"]
+
+
+def test_user_keys_404_means_the_route_is_not_deployed():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, json={"detail": "Not Found"})
+
+    async def main():
+        async with _client(handler) as client:
+            await client.user_keys()
+
+    with pytest.raises(FeatureUnavailableError):
+        asyncio.run(main())
 
 
 def test_wait_paces_polls_when_the_server_answers_early(http_fixtures):

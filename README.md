@@ -10,7 +10,7 @@ The HTTP/OpenAPI contract is the source of truth; everything else here is an ada
 |---|---|---|
 | OpenAPI contract | `openapi/agent-authorization.openapi.yaml` | Raw HTTP clients in any language |
 | Python SDK | `packages/python/` (`yanez-agent-authorization`, import `yanez_authz`) | Custom agents and relying parties |
-| TypeScript SDK | `packages/typescript/` (`@yanez/agent-authorization`) | Node agents and relying parties |
+| TypeScript SDK | `packages/typescript/` (`@yanez.ai/agent-authorization`) | Node agents and relying parties |
 | CLI | `cli/` (`yanez-authz`) | Shell-capable agents; skill+CLI needs no MCP |
 | MCP server | `integrations/mcp/` (`yanez-authz-mcp`, stdio) | MCP-capable hosts |
 | Skill | `skills/yanez-authorize/` | Teaches an agent when and how to ask |
@@ -24,21 +24,22 @@ then the matching quickstart.
 
 ## Install
 
-Pre-release: the Python SDK is on PyPI as a pre-release, so pass `--pre`. The CLI, MCP
-server, and TypeScript SDK are not published yet; until they are, install them from a
-checkout with the commands under Development.
+Pre-release: the Python SDK is on PyPI as a pre-release, so pass `--pre`, and the
+TypeScript SDK is on npm under the `beta` tag. The CLI and MCP server are not
+published yet; until they are, install them from a checkout with the commands under
+Development.
 
 | Path | Install |
 |---|---|
 | Python SDK | `pip install --pre yanez-agent-authorization` |
 | CLI | `pip install yanez-authz-cli` (installs `yanez-authz`) |
 | MCP server | `pip install yanez-authz-mcp` (installs `yanez-authz-mcp`) |
-| TypeScript SDK | `npm install @yanez/agent-authorization` |
+| TypeScript SDK | `npm install @yanez.ai/agent-authorization@beta` |
 
 ## The one rule that matters
 
 A receipt authorizes nothing by itself. The **action executor** must verify the
-signature, compare the signed terms with the proposed action by deep JSON equality,
+both signatures, compare the signed terms with the proposed action structurally,
 apply its own freshness policy, and consume single-use receipts.
 [Action enforcement](docs/action-enforcement.md) is the contract for that boundary.
 

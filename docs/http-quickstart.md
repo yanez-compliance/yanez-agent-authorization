@@ -1,12 +1,12 @@
 ---
 title: HTTP quickstart
-description: Create, poll, verify, and consume an authorization over the four HTTP routes.
+description: Create, poll, verify, and consume an authorization over the HTTP routes.
 ---
 
 # HTTP quickstart
 
 Full schemas: [the OpenAPI contract](https://github.com/yanez-compliance/yanez-agent-authorization/blob/main/openapi/agent-authorization.openapi.yaml).
-Four routes; the two agent
+Five routes; the three agent
 routes take `Authorization: Bearer yak_...`, the two relying-party routes are public.
 
 ## 1. Create a request (agent)
@@ -69,6 +69,22 @@ Authorization: Bearer yak_...
 (non-null `artifact`), `rejected`, `expired`. Unknown and cross-key ids are the same
 `404`. Stop on rejection or expiry; do not create replacements in a loop.
 
+### Optional: list the user's signing keys (agent)
+
+```http
+GET /api/agent/user_keys
+Authorization: Bearer yak_...
+```
+
+`200` → `{"yid": "...", "keys": [{"tier": "high", "public_key": "0x..."}]}`. The YID
+comes from the agent key; there is no YID parameter. `tier` is `null` for a key with no
+recognized tier, and no keys is an empty list. Live on Development only for now.
+
+Use it to check that an approved receipt's `yanez_user_public_key` is registered at its
+`yanez_assurance_tier`, or before asking, to learn that a tier your policy requires has
+no key. Read it fresh each time rather than caching it. Details:
+[checking the key against the registry](user-signed-approvals.md#checking-the-key-against-the-registry).
+
 ## 3. Verify (relying party — no credentials)
 
 ```http
@@ -77,9 +93,14 @@ GET /api/authz/public-keys
 
 Flat Ed25519 JWKs. Verify the artifact offline: pin `alg=EdDSA`, select the key by the
 header `kid` (refresh on an unknown kid, at most once per 30 s), check your exact
-expected `iss`, compare `yanez_terms` with your expected terms by deep equality, and
-check that `sub` is the YID your records tie to the account being acted on. Claim
-profile and freshness rules: [receipts](receipts.md).
+expected `iss`, compare `yanez_terms` with your expected terms structurally, and check
+that `sub` is the YID your records tie to the account being acted on. Claim profile and
+freshness rules: [receipts](receipts.md).
+
+Then verify the **second** signature. The receipt carries the approver's own BLS
+signature over `yanez_signed_message`, and checking it — plus every field inside those
+bytes — is what makes the receipt more than a Yanez assertion. A JWT library will not do
+this for you: [user-signed approvals](user-signed-approvals.md).
 
 ## 4. Consume (action executor, single-use actions)
 
@@ -87,13 +108,18 @@ profile and freshness rules: [receipts](receipts.md).
 POST /api/authz/introspect
 Content-Type: application/json
 
-{"artifact": "eyJ...", "consume": true}
+{"artifact": "eyJ...", "consume": true, "consumer_token": "<your durable token>"}
 ```
 
+`consumer_token` is required when consuming. It is your own opaque, durable string
+identifying this attempt — write it down before the call, and reuse it verbatim on every
+retry.
+
 `valid` answers only "is this receipt genuine" — a spent or consent-expired receipt
-stays `valid: true`. Gate the action on `consumed_now: true`. A repeat consume returns
-`reason: "already_consumed"`, `consumed_now: false`; never act on it.
+stays `valid: true`. Gate the action on `consumed_now: true`. A consume by another
+holder returns `reason: "already_consumed"`, `consumed_now: false`; never act on it.
 
 A receipt is bearer proof: never log it or put it in a URL. If the consume response is
-lost, a retry answers `already_consumed` whether your call or another spent it. Do not
-act; request a new approval.
+lost, retry with the **same** token: `reason: "reservation_held"` means your own earlier
+attempt won, so reconcile downstream with your original idempotency key rather than
+requesting a new approval. `already_consumed` means someone else holds it.

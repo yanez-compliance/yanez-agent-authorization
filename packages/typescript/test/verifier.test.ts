@@ -11,16 +11,24 @@ import {
   ReceiptVerificationError,
   ReceiptVerifier,
   TransportError,
+  UserSignatureError,
   type ReceiptVerifierOptions,
 } from "../src/index.js";
-import { httpFixtures, jsonResponse, jwks, localIssuer, receipts } from "./helpers.js";
+import {
+  envelopeFor, httpFixtures, jsonResponse, jwks, localIssuer, proofFor, receipts, userKeys,
+} from "./helpers.js";
 
 const BASE = "https://yanez.test";
 const ISSUER = "https://yanez.test";
 
+const TOKEN = "executor-attempt-1";
+
 const ERRORS: Record<string, new (m: string) => Error> = {
   verification: ReceiptVerificationError,
   consent_policy: ConsentPolicyError,
+  // A distinct class, not a distinct message: an executor must be able to tell "the
+  // user did not sign this" from "the terms are not the ones I expected".
+  user_signature: UserSignatureError,
 };
 
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
@@ -49,6 +57,9 @@ test("conformance cases", async (t) => {
         assert.ok(receipt.jti && receipt.sub);
         assert.deepStrictEqual(receipt.terms, receipts.expected_terms);
         assert.ok(receipt.matchOverlap >= 0);
+        assert.strictEqual(receipt.assuranceTier, c.assurance_tier ?? receipts.assurance_tier);
+        // The tier acted on comes from the bytes the user signed, not the claim beside them.
+        assert.strictEqual(receipt.userProof.envelope.assurance_tier, receipt.assuranceTier);
       } else {
         await assert.rejects(
           verifier.verify(c.artifact, expectedTerms, 900, { now }), ERRORS[c.error]);
@@ -127,8 +138,15 @@ async function mintedVerify() {
     yanez_decided_at: receipts.decided_at, yanez_match_overlap: 1,
     yanez_terms: receipts.expected_terms,
   };
-  return (claims: Record<string, unknown>) => issuer.sign({ ...good, ...claims })
-    .then((a) => verifier.verify(a, receipts.expected_terms, 900, { now: receipts.now_fresh }));
+  return (claims: Record<string, unknown>) => {
+    // The proof is minted from the FINAL claims, so a test that overrides sub, jti or
+    // the consent bound still gets a receipt whose two halves agree. Overrides that are
+    // meant to fail trip an earlier check; the user proof is verified last.
+    const merged = { ...good, ...claims };
+    const signed = { ...merged, ...proofFor(envelopeFor(merged)) };
+    return issuer.sign(signed)
+      .then((a) => verifier.verify(a, receipts.expected_terms, 900, { now: receipts.now_fresh }));
+  };
 }
 
 test("null or non-string identity claims are rejected", async () => {
@@ -181,7 +199,8 @@ test("authorizeAction requires a confirmed consumption", async () => {
   const { verifier } = makeVerifier(() => jsonResponse(200, responses.shift()),
     { now: () => receipts.now_fresh });
   const act = () => verifier.authorizeAction(
-    receipts.cases.valid.artifact, receipts.expected_terms, 900, { consume: true });
+    receipts.cases.valid.artifact, receipts.expected_terms, 900,
+    { consume: true, consumerToken: TOKEN });
 
   await assert.rejects(act(), { name: "ReceiptVerificationError", message: "receipt was not consumed" });
   await assert.rejects(act(), ReceiptVerificationError);
@@ -243,12 +262,13 @@ test("introspect and authorizeAction map consumption", async () => {
   const artifact = receipts.cases.valid.artifact;
 
   const receipt = await verifier.authorizeAction(artifact, receipts.expected_terms, 900,
-    { consume: true });
+    { consume: true, consumerToken: TOKEN });
   assert.strictEqual(receipt.jti, httpFixtures.introspect_first_consume.jti);
 
   // The repeat is a genuine receipt that must never authorize the action again.
   await assert.rejects(
-    verifier.authorizeAction(artifact, receipts.expected_terms, 900, { consume: true }),
+    verifier.authorizeAction(artifact, receipts.expected_terms, 900,
+      { consume: true, consumerToken: TOKEN }),
     AlreadyConsumedError);
 });
 

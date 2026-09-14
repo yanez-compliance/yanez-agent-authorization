@@ -1,0 +1,40 @@
+name: publish-typescript
+# Releases packages/typescript to npm via trusted publishing (OIDC): no token anywhere.
+# Trigger: push a tag typescript-v<version>, where <version> equals package.json's.
+# Pre-release versions (anything with a "-") publish under the "beta" dist-tag.
+# The trusted publisher on npmjs.com must have "Allow npm publish" checked under
+# Allowed actions. Without it only "npm stage publish" is permitted and this job
+# fails with: 403 OIDC permission denied for this action.
+on:
+  push:
+    tags: ["typescript-v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+      - name: tag matches package.json version
+        run: |
+          tag="${GITHUB_REF_NAME#typescript-v}"
+          version="$(node -p 'require("./package.json").version')"
+          [ "$tag" = "$version" ] || { echo "tag $tag != package.json version $version"; exit 1; }
+      - run: npm ci
+      - run: npm test
+      - name: publish
+        run: |
+          case "$(node -p 'require("./package.json").version')" in
+            *-*) npm publish --tag beta ;;
+            *)   npm publish ;;
+          esac

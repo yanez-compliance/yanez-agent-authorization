@@ -45,13 +45,21 @@ sequenceDiagram
      the future; `yanez_match_overlap` is an integer `>= 0`; `yanez_consent_not_after`
      is an integer when present.
    - *Subject.* `sub` equals the YID entitled to act on this account (`expected_sub`).
-3. **Compare terms.** `yanez_terms` equals the expected terms by deep JSON equality.
-   No ignored fields, no wildcards.
-4. **Apply your freshness policy.** Refuse when `now - yanez_decided_at > max_age`.
-5. **Honor the declared consent bound.** Refuse when `now > yanez_consent_not_after`.
-6. **Consume, for single-use actions**, immediately before executing:
-   `POST /api/authz/introspect {"artifact": ..., "consume": true}`, and proceed only
-   on `consumed_now: true`.
+3. **Verify the approver's own signature**, and check every field inside it against
+   this receipt. This is the half a JWT library cannot do for you, and skipping the
+   field checks makes the signature check decorative:
+   [verifying, step by step](user-signed-approvals.md#verifying-step-by-step).
+4. **Compare terms.** `yanez_terms` equals the expected terms structurally, and equals
+   the terms inside the signed message. No ignored fields, no wildcards.
+5. **Apply your freshness policy.** Refuse when `now - yanez_decided_at > max_age`.
+6. **Honor the declared consent bound.** Refuse when `now > yanez_consent_not_after`.
+7. **Apply your assurance floor.** Refuse when `yanez_assurance_tier` is below what the
+   value at risk warrants. A `low`-tier approval is genuine; whether it is enough is
+   your decision, and nobody else's.
+8. **Consume, for single-use actions**, immediately before executing:
+   `POST /api/authz/introspect {"artifact": ..., "consume": true, "consumer_token": ...}`,
+   and proceed only on `consumed_now: true`. Write the token and an idempotency key
+   derived from `jti` durably **before** the call.
 
 <div class="callout callout-warn" markdown="1">
 <div class="callout-title">Two common mistakes in step 2</div>
@@ -62,7 +70,7 @@ the SDKs make it a mandatory constructor argument.
 
 ## Using the SDK
 
-Both SDKs package steps 2 through 6 as one call:
+Both SDKs package steps 2 through 8 as one call:
 
 ```python
 from yanez_authz import ReceiptVerifier
@@ -72,22 +80,27 @@ verifier = ReceiptVerifier(
     expected_issuer=expected_issuer,  # configured, never taken from the receipt
 )
 
-# Steps 2-6: verify, compare terms, apply time policy, consume.
+# Steps 2-8: verify both signatures, compare terms, apply time and tier policy, consume.
 receipt = verifier.authorize_action(
     artifact,
     expected_terms,                   # rebuilt from the order, not from the agent
     max_age_seconds=900,
     consume=True,
+    consumer_token=job.consumer_token, # yours, durable, reused on every retry
     expected_sub=order.approver_yid,  # the YID your records tie to this account
+    min_assurance_tier="high",        # your floor for the value at risk
 )
 
 # Only reachable if authorize_action returned.
-execute_purchase(order)
+execute_purchase(order, idempotency_key=job.idempotency_key)
 ```
 
-`authorize_action` raises `ReceiptVerificationError`, `ConsentPolicyError`, or
-`AlreadyConsumedError` when a check fails, and `TransportError` when Yanez cannot be
-reached. On any of them, do not act. The verifier refuses plain HTTP outside loopback,
+`authorize_action` raises `ReceiptVerificationError` (or its subclass
+`UserSignatureError`, when the approver's own signature is what failed),
+`ConsentPolicyError`, `AlreadyConsumedError`, or `ReservationHeldError` when a check
+fails, and `TransportError` when Yanez cannot be reached. On all of them except
+`ReservationHeldError`, do not act — see
+[recovering a lost consume](user-signed-approvals.md#recovering-a-lost-consume). The verifier refuses plain HTTP outside loopback,
 does not follow redirects, and caches the key set for ten minutes. Both SDKs apply the
 same checklist and reach the same verdicts on the shared conformance fixtures.
 
@@ -104,6 +117,7 @@ records before acting. `expected_agent_key_id` additionally pins which agent key
 - An agent-generated boolean.
 - Prose such as "the user approved".
 - Decoded but unverified JWT claims.
+- A verified Yanez signature with the approver's own signature left unchecked.
 - An MCP tool result.
 
 ## Replay and single use
@@ -127,10 +141,14 @@ while the deployment's issuer and key configuration stay the same. `reason` and
 | `true` | — | `null` | <span class="badge badge-no">Do not act</span> Genuine, but `consume` was false, so nothing was reserved. Not enough on its own. |
 | `true` | — | `true` | <span class="badge badge-ok">Act now</span> Genuine, and this call spent it. |
 | `true` | `"consent_expired"` | `false` | <span class="badge badge-no">Do not act</span> Genuine, but `yanez_consent_not_after` has passed. Not consumed. Request a new approval. |
-| `true` | `"already_consumed"` | `false` | <span class="badge badge-no">Never act</span> Genuine, but an earlier call already spent it. |
+| `true` | `"already_consumed"` | `false` | <span class="badge badge-no">Never act</span> Genuine, but another holder already spent it. |
+| `true` | `"reservation_held"` | `false` | <span class="badge badge-ok">Reconcile</span> **You** already hold it, from an attempt whose response was lost. The action may already have happened: re-send or query downstream with your ORIGINAL idempotency key. Never re-approve. |
 
 Every `valid: true` response also returns the decoded `sub`, `jti`, `decided_at`,
-`consent_not_after`, and `terms`, so you read one shape whether or not you can act.
+`consent_not_after`, `terms`, and the proof claims, so you read one shape whether or not
+you can act. Those proof fields are the issuer's report of the claims, not an
+independent check: verifying the user's signature is local work that no round trip can
+do for you.
 Consumption is permanent and deployment-wide: a spent `jti` never re-arms, because a
 receipt that verifies forever must stay spent forever.
 
@@ -142,9 +160,15 @@ query string, and send it only over TLS.
 </div>
 
 <div class="callout callout-warn" markdown="1">
-<div class="callout-title">Fail closed on a lost consume response</div>
-Act only when the consume response says `consumed_now: true`. If that response is lost
-to a timeout or a reset, the outcome is ambiguous, and a retry answers
-`already_consumed` whether the lost call or a competing one spent it. Do not act;
-request a new approval.
+<div class="callout-title">A lost consume response is recoverable now</div>
+Act only when the consume response says `consumed_now: true`. When that response is lost
+to a timeout or a reset, retry **with the same `consumer_token`**: `reservation_held`
+means your own earlier attempt won, and `already_consumed` means someone else did. That
+distinction is the whole reason the token is caller-supplied, and it is why the server
+never generates one — a server-minted token would be lost along with the response it
+travelled in.
+
+On `reservation_held`, reconcile the downstream action with your original idempotency
+key. Requesting a new approval there mints a second `jti` for an action that may already
+have succeeded, and the duplicate is invisible to every consumption check.
 </div>

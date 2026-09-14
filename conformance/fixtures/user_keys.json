@@ -1,0 +1,17 @@
+{
+  "keys": [
+    {
+      "public_key": "a1c3cbcd83bf2f7ec0ff3d66ee6600b47ce0bb4bf857a3ddd62482d1689503e85469be0b836930b1bf06135600e9d551",
+      "tier": "high"
+    },
+    {
+      "public_key": "aa90b429a3722c1146b6318d03c0d3179ce7fd46a34371a6a37a7c42d39ebdce0b676ff25fb7360c12e304ea46a94cb3",
+      "tier": "medium"
+    },
+    {
+      "public_key": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tier": null
+    }
+  ],
+  "yid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

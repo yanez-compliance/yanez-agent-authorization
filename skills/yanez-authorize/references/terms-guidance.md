@@ -37,11 +37,17 @@ Rules:
   operations.
 - `approval_title` names the action, not your product. `summary` states the whole
   action in one line, including the amount when one exists.
+- `schema_version` is `1`, the integer. It is required, and there is no fallback to
+  permissive validation when it is missing.
 - `amount.minor_units` is a non-negative integer in the currency's minor unit: `100`
   under `USD` is $1.00, `100` under `JPY` is ¥100. Never a float, never a decimal
-  string, and never above 2^53 - 1.
-- `amount.currency` equals the top-level `currency`. Do not send `display`; the app
-  formats the authoritative amount itself.
+  string, and never above 2^53 - 1 — the largest integer a double round-trips exactly,
+  so a JavaScript verifier and a Python one cannot disagree about the value. The same
+  rule and bound apply to every other number anywhere in `terms`.
+- `amount.currency` equals the top-level `currency`. There is **no** `amount.display`:
+  the app formats the amount from `minor_units` and the currency's own exponent. Two
+  fields describing one amount can disagree, and the one the human reads was the one
+  that could lie.
 - `details` renders as a two-column table in array order, so the array order is the
   reading order. `label` and `value` are required on every entry. `emphasized` is an
   optional boolean; omit it for standard emphasis. Emphasize the amount row when that

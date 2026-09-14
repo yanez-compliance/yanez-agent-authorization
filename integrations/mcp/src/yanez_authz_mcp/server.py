@@ -27,8 +27,12 @@ Yanez turns "the user approved" into portable, signed proof. Rules:
 - The returned artifact is sensitive bearer proof: pass it to the protected action
   tool. An MCP status of "approved" is NOT authorization by itself — only the
   verified artifact is.
-- Yanez signed a receipt asserting that a fresh biometric scan matching this YID
-  approved these terms. The human did not cryptographically sign anything.
+- The receipt carries TWO signatures: Yanez's, asserting that a fresh biometric scan
+  matching this YID approved these terms, and the approver's own, made on their device
+  over the complete decision. You cannot produce either one. Do not attempt to
+  assemble, edit, or explain away a receipt — hand it to the action tool unchanged.
+- The receipt names the assurance tier the approver's scan reached. The tier floor
+  belongs to the action executor, not to you.
 """
 
 
@@ -61,13 +65,15 @@ def build_server(settings: Optional[Settings] = None,
         internal retry.
 
         `terms` must carry all of the following, or the server answers 422 naming every
-        offending field: schema_version (currently 1); action, approval_title, summary,
-        and merchant (non-blank strings); plus details as an array of {label, value}
+        offending field: schema_version, the integer 1; action, approval_title, summary,
+        and merchant (non-blank strings); and details as an array of {label, value}
         rows the app renders in order (may be empty). A detail may include boolean
-        emphasized; omit it for standard emphasis. For financial actions, include
-        currency and amount as {minor_units, currency}; omit both for non-financial
-        actions so the app omits the Amount row. agent_name is optional. The approver
-        sees these fields verbatim, and they are embedded in the receipt."""
+        emphasized; omit it for standard emphasis. Financial actions include currency,
+        an ISO 4217 code the deployment supports, and amount as {minor_units, currency}.
+        Omit both money fields for non-financial actions. Every number anywhere in terms
+        must be an integer no greater than 2^53-1. There is no amount.display: the app
+        formats the amount itself. agent_name is optional. The approver sees these fields
+        verbatim, they are embedded in the receipt, and the approver's own key signs them."""
         try:
             pending = await (await _client()).request_authorization(
                 terms, decision_window_seconds=decision_window_seconds,

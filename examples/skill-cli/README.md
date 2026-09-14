@@ -25,10 +25,15 @@ The relying party verifies and consumes independently:
 ```sh
 yanez-authz --json verify --artifact-file artifact.jws \
   --expected-terms-file terms.json --issuer "$YANEZ_ISSUER" \
-  --max-age 900 --consume --expected-sub "$ACCOUNT_YID"
+  --max-age 900 --consume --consumer-token "$DURABLE_TOKEN" \
+  --expected-sub "$ACCOUNT_YID" --min-assurance-tier high
 ```
 
 `--issuer` is the issuer string your Yanez operator publishes for the deployment.
+`--consumer-token` is yours: a durable string identifying this attempt, written down
+before the call and reused verbatim on every retry, so a lost response can be told from
+another holder's consume. `verify` checks both signatures — Yanez's, and the approver's
+own over the decision they made.
 `--expected-sub` is the YID your records tie to the account being acted on; without it
 a receipt proves only that some user approved these terms.
 

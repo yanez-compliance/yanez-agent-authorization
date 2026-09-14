@@ -9,6 +9,7 @@
     "valid": false
   },
   "introspect_first_consume": {
+    "assurance_tier": "high",
     "consent_not_after": null,
     "consumed_now": true,
     "decided_at": 1767225600,
@@ -19,7 +20,6 @@
       "action": "purchase",
       "amount": {
         "currency": "USD",
-        "display": "$180.00",
         "minor_units": 18000
       },
       "approval_title": "Purchase running shoes",
@@ -42,11 +42,15 @@
         }
       ],
       "merchant": "Example Store",
+      "schema_version": 1,
       "summary": "Buy running shoes for $180.00 at Example Store"
     },
+    "user_public_key": "0xa1c3cbcd83bf2f7ec0ff3d66ee6600b47ce0bb4bf857a3ddd62482d1689503e85469be0b836930b1bf06135600e9d551",
+    "user_sig_alg": "BLS12-381-G2-basic",
     "valid": true
   },
   "introspect_repeat_consume": {
+    "assurance_tier": "high",
     "consent_not_after": null,
     "consumed_now": false,
     "decided_at": 1767225600,
@@ -57,7 +61,6 @@
       "action": "purchase",
       "amount": {
         "currency": "USD",
-        "display": "$180.00",
         "minor_units": 18000
       },
       "approval_title": "Purchase running shoes",
@@ -80,12 +83,56 @@
         }
       ],
       "merchant": "Example Store",
+      "schema_version": 1,
       "summary": "Buy running shoes for $180.00 at Example Store"
     },
+    "user_public_key": "0xa1c3cbcd83bf2f7ec0ff3d66ee6600b47ce0bb4bf857a3ddd62482d1689503e85469be0b836930b1bf06135600e9d551",
+    "user_sig_alg": "BLS12-381-G2-basic",
+    "valid": true
+  },
+  "introspect_reservation_held": {
+    "assurance_tier": "high",
+    "consent_not_after": null,
+    "consumed_now": false,
+    "decided_at": 1767225600,
+    "jti": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
+    "reason": "reservation_held",
+    "sub": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "terms": {
+      "action": "purchase",
+      "amount": {
+        "currency": "USD",
+        "minor_units": 18000
+      },
+      "approval_title": "Purchase running shoes",
+      "currency": "USD",
+      "details": [
+        {
+          "emphasized": false,
+          "label": "Merchant",
+          "value": "Example Store"
+        },
+        {
+          "emphasized": false,
+          "label": "Item",
+          "value": "Running shoes, model X, size 10"
+        },
+        {
+          "emphasized": true,
+          "label": "Amount",
+          "value": "$180.00"
+        }
+      ],
+      "merchant": "Example Store",
+      "schema_version": 1,
+      "summary": "Buy running shoes for $180.00 at Example Store"
+    },
+    "user_public_key": "0xa1c3cbcd83bf2f7ec0ff3d66ee6600b47ce0bb4bf857a3ddd62482d1689503e85469be0b836930b1bf06135600e9d551",
+    "user_sig_alg": "BLS12-381-G2-basic",
     "valid": true
   },
   "poll_approved": {
-    "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7ImFjdGlvbiI6InB1cmNoYXNlIiwiYXBwcm92YWxfdGl0bGUiOiJQdXJjaGFzZSBydW5uaW5nIHNob2VzIiwic3VtbWFyeSI6IkJ1eSBydW5uaW5nIHNob2VzIGZvciAkMTgwLjAwIGF0IEV4YW1wbGUgU3RvcmUiLCJtZXJjaGFudCI6IkV4YW1wbGUgU3RvcmUiLCJjdXJyZW5jeSI6IlVTRCIsImFtb3VudCI6eyJtaW5vcl91bml0cyI6MTgwMDAsImN1cnJlbmN5IjoiVVNEIiwiZGlzcGxheSI6IiQxODAuMDAifSwiZGV0YWlscyI6W3sibGFiZWwiOiJNZXJjaGFudCIsInZhbHVlIjoiRXhhbXBsZSBTdG9yZSIsImVtcGhhc2l6ZWQiOmZhbHNlfSx7ImxhYmVsIjoiSXRlbSIsInZhbHVlIjoiUnVubmluZyBzaG9lcywgbW9kZWwgWCwgc2l6ZSAxMCIsImVtcGhhc2l6ZWQiOmZhbHNlfSx7ImxhYmVsIjoiQW1vdW50IiwidmFsdWUiOiIkMTgwLjAwIiwiZW1waGFzaXplZCI6dHJ1ZX1dfX0.Ov50Bq-YfLn94j9dVor4CW9yfc0rXGB4_Lb7i4hf2Q7ofAEzG5WuRq_5qsbTX59T4sbopX7_b6sAao5C-jDiAQ",
+    "artifact": "eyJhbGciOiJFZERTQSIsImtpZCI6ImF1dGh6X3Rlc3RfMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lhbmV6LnRlc3QiLCJzdWIiOiJhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYSIsImp0aSI6ImF6cl9jMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMGMwYzBjMCIsImlhdCI6MTc2NzIyNTYwMCwieWFuZXpfYWdlbnRfa2V5X2lkIjoieWFrX2NvbmZvcm1hbmNlMSIsInlhbmV6X2RlY2lzaW9uIjoiYXBwcm92ZWQiLCJ5YW5lel9kZWNpZGVkX2F0IjoxNzY3MjI1NjAwLCJ5YW5lel9tYXRjaF9vdmVybGFwIjoyMTMsInlhbmV6X3Rlcm1zIjp7InNjaGVtYV92ZXJzaW9uIjoxLCJhY3Rpb24iOiJwdXJjaGFzZSIsImFwcHJvdmFsX3RpdGxlIjoiUHVyY2hhc2UgcnVubmluZyBzaG9lcyIsInN1bW1hcnkiOiJCdXkgcnVubmluZyBzaG9lcyBmb3IgJDE4MC4wMCBhdCBFeGFtcGxlIFN0b3JlIiwibWVyY2hhbnQiOiJFeGFtcGxlIFN0b3JlIiwiY3VycmVuY3kiOiJVU0QiLCJhbW91bnQiOnsibWlub3JfdW5pdHMiOjE4MDAwLCJjdXJyZW5jeSI6IlVTRCJ9LCJkZXRhaWxzIjpbeyJsYWJlbCI6Ik1lcmNoYW50IiwidmFsdWUiOiJFeGFtcGxlIFN0b3JlIiwiZW1waGFzaXplZCI6ZmFsc2V9LHsibGFiZWwiOiJJdGVtIiwidmFsdWUiOiJSdW5uaW5nIHNob2VzLCBtb2RlbCBYLCBzaXplIDEwIiwiZW1waGFzaXplZCI6ZmFsc2V9LHsibGFiZWwiOiJBbW91bnQiLCJ2YWx1ZSI6IiQxODAuMDAiLCJlbXBoYXNpemVkIjp0cnVlfV19LCJ5YW5lel9hc3N1cmFuY2VfdGllciI6ImhpZ2giLCJ5YW5lel91c2VyX3B1YmxpY19rZXkiOiIweGExYzNjYmNkODNiZjJmN2VjMGZmM2Q2NmVlNjYwMGI0N2NlMGJiNGJmODU3YTNkZGQ2MjQ4MmQxNjg5NTAzZTg1NDY5YmUwYjgzNjkzMGIxYmYwNjEzNTYwMGU5ZDU1MSIsInlhbmV6X3VzZXJfc2lnbmF0dXJlIjoiMHg4NWZhZTdhNmM4ZDNlOGRhOTVhY2EwOWU1N2NiYTc1YjVhYWNlMjU3MzZkMzhjOTljYzMwMzJhZGFjYmM3MzQ3N2ViMWIxZGY1ZmQ4ZWM0YjBkMDI1ZTRhODE3YmY0ZDMwMmE2NjYxYjMzODMyZWZkZWI5MmRmZjcwYmFiOTNiYmE2MTJhZjEwNjMxZDNhN2E1YmIxYzEyYmY5NGVlMmZhNTUxNDYwMjY5ZDkwMmQ3NmY5YTAyMWY4OGMxMDFlZmMiLCJ5YW5lel9zaWduZWRfbWVzc2FnZSI6ImV5SmhZM1JwYjI0aU9pSmhaMlZ1ZEY5aGRYUm9iM0pwZW1GMGFXOXVjeTVrWldOcGMybHZiaUlzSW1GemMzVnlZVzVqWlY5MGFXVnlJam9pYUdsbmFDSXNJbUYxZEdodmNtbDZZWFJwYjI1ZmNtVnhkV1Z6ZEY5cFpDSTZJbUY2Y2w5ak1HTXdZekJqTUdNd1l6QmpNR013WXpCak1HTXdZekJqTUdNd1l6QmpNQ0lzSW1OdmJuTmxiblJmYm05MFgyRm1kR1Z5SWpwdWRXeHNMQ0prWldOcGMybHZiaUk2SW1Gd2NISnZkbVVpTENKcGMzTjFaWElpT2lKb2RIUndjem92TDNsaGJtVjZMblJsYzNRaUxDSnphV2R1WldSZllYUWlPakUzTmpjeU1qVTFPVFlzSW5SbGNtMXpJanA3SW1GamRHbHZiaUk2SW5CMWNtTm9ZWE5sSWl3aVlXMXZkVzUwSWpwN0ltTjFjbkpsYm1ONUlqb2lWVk5FSWl3aWJXbHViM0pmZFc1cGRITWlPakU0TURBd2ZTd2lZWEJ3Y205MllXeGZkR2wwYkdVaU9pSlFkWEpqYUdGelpTQnlkVzV1YVc1bklITm9iMlZ6SWl3aVkzVnljbVZ1WTNraU9pSlZVMFFpTENKa1pYUmhhV3h6SWpwYmV5SmxiWEJvWVhOcGVtVmtJanBtWVd4elpTd2liR0ZpWld3aU9pSk5aWEpqYUdGdWRDSXNJblpoYkhWbElqb2lSWGhoYlhCc1pTQlRkRzl5WlNKOUxIc2laVzF3YUdGemFYcGxaQ0k2Wm1Gc2MyVXNJbXhoWW1Wc0lqb2lTWFJsYlNJc0luWmhiSFZsSWpvaVVuVnVibWx1WnlCemFHOWxjeXdnYlc5a1pXd2dXQ3dnYzJsNlpTQXhNQ0o5TEhzaVpXMXdhR0Z6YVhwbFpDSTZkSEoxWlN3aWJHRmlaV3dpT2lKQmJXOTFiblFpTENKMllXeDFaU0k2SWlReE9EQXVNREFpZlYwc0ltMWxjbU5vWVc1MElqb2lSWGhoYlhCc1pTQlRkRzl5WlNJc0luTmphR1Z0WVY5MlpYSnphVzl1SWpveExDSnpkVzF0WVhKNUlqb2lRblY1SUhKMWJtNXBibWNnYzJodlpYTWdabTl5SUNReE9EQXVNREFnWVhRZ1JYaGhiWEJzWlNCVGRHOXlaU0o5TENKMlpYSnphVzl1SWpveExDSjVhV1FpT2lKaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZU0o5IiwieWFuZXpfdXNlcl9zaWdfYWxnIjoiQkxTMTItMzgxLUcyLWJhc2ljIn0.MwU5qi-DK50mEpcQ5lYbZtywsquP5a7_iFkMBKIdHTzKifo5T0zHGldQJKrA4lxsoYwBtDXigeYeDyKVD2LVDQ",
     "consent_not_after": null,
     "decided_at": "2026-01-01T00:00:00Z",
     "request_id": "azr_c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",

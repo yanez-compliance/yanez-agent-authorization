@@ -24,6 +24,7 @@ import yaml
 PATHS = [
     "/api/agent/authorizations",
     "/api/agent/authorizations/{request_id}",
+    "/api/agent/user_keys",
     "/api/authz/public-keys",
     "/api/authz/introspect",
 ]

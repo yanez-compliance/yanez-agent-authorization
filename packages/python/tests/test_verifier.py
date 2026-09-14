@@ -13,13 +13,24 @@ from yanez_authz import (
     InvalidRequestError,
     ReceiptVerificationError,
     ReceiptVerifier,
+    ReservationHeldError,
     TransportError,
+    UserSignatureError,
+    key_is_registered,
+    verify_user_proof,
 )
+from yanez_authz.proof import UserProofError
 
 BASE = "https://yanez.test"
 ISSUER = "https://yanez.test"
 
-_ERRORS = {"verification": ReceiptVerificationError, "consent_policy": ConsentPolicyError}
+_ERRORS = {"verification": ReceiptVerificationError,
+           "consent_policy": ConsentPolicyError,
+           # A distinct class, not a distinct message: an executor must be able to tell
+           # "the user did not sign this" from "the terms are not the ones I expected".
+           "user_signature": UserSignatureError}
+
+TOKEN = "executor-attempt-1"
 
 
 def _signed(receipts, **overrides) -> str:
@@ -56,6 +67,11 @@ def test_conformance_cases(jwks, receipts):
             assert receipt.jti and receipt.sub, name
             assert receipt.terms == receipts["expected_terms"], name
             assert receipt.match_overlap >= 0, name
+            assert receipt.assurance_tier == case.get("assurance_tier",
+                                                      receipts["assurance_tier"]), name
+            # The tier acted on comes from the bytes the user signed, not from the
+            # claim beside them.
+            assert receipt.user_proof.envelope["assurance_tier"] == receipt.assurance_tier
         else:
             with pytest.raises(_ERRORS[case["error"]]):
                 verifier.verify(case["artifact"], expected_terms, 900, now=now)
@@ -124,12 +140,13 @@ def test_introspect_and_authorize_action_map_consumption(jwks, receipts, http_fi
     artifact = receipts["cases"]["valid"]["artifact"]
 
     receipt = verifier.authorize_action(artifact, receipts["expected_terms"], 900,
-                                        consume=True)
+                                        consume=True, consumer_token=TOKEN)
     assert receipt.jti == http_fixtures["introspect_first_consume"]["jti"]
 
     # The repeat is a genuine receipt that must never authorize the action again.
     with pytest.raises(AlreadyConsumedError):
-        verifier.authorize_action(artifact, receipts["expected_terms"], 900, consume=True)
+        verifier.authorize_action(artifact, receipts["expected_terms"], 900,
+                                  consume=True, consumer_token=TOKEN)
 
 
 def test_expected_issuer_is_mandatory_and_https_is_enforced():
@@ -172,14 +189,23 @@ def test_null_or_mistyped_required_claims_are_rejected(jwks, receipts):
             verifier.verify(bad, receipts["expected_terms"], 900, now=receipts["now_fresh"])
 
 
-def test_terms_comparison_keeps_bool_and_int_distinct(jwks, receipts):
+def test_terms_comparison_keeps_bool_and_int_distinct(jwks, receipts, mint):
     """Python's True == 1 must not reach a verdict the TypeScript SDK would not."""
     verifier, _ = _verifier(jwks)
     terms, now = receipts["expected_terms"], receipts["now_fresh"]
-    artifact = _signed(receipts, yanez_terms={**terms, "gift": True})
+    artifact = mint(terms={**terms, "gift": True})
     with pytest.raises(ReceiptVerificationError):
         verifier.verify(artifact, {**terms, "gift": 1}, 900, now=now)
     assert verifier.verify(artifact, {**terms, "gift": True}, 900, now=now).jti
+
+
+def test_minus_zero_equals_zero_in_terms(jwks, receipts, mint):
+    """Spec §3.3: numbers compare by value. `isDeepStrictEqual` disagrees, which is why
+    neither SDK uses it any more — two verifiers must not split on the same bytes."""
+    verifier, _ = _verifier(jwks)
+    terms, now = receipts["expected_terms"], receipts["now_fresh"]
+    artifact = mint(terms={**terms, "adjustment": -0.0})
+    assert verifier.verify(artifact, {**terms, "adjustment": 0}, 900, now=now).jti
 
 
 def test_malformed_key_set_is_tolerated_per_entry_and_refused_per_body(jwks, receipts):
@@ -206,7 +232,8 @@ def test_introspection_outcomes_are_typed(jwks, receipts, http_fixtures):
         verifier, _ = _verifier(jwks, extra_handler=lambda r, response=response: response,
                                 now=lambda: receipts["now_fresh"])
         with pytest.raises(exc):
-            verifier.authorize_action(artifact, terms, 900, consume=True)
+            verifier.authorize_action(artifact, terms, 900, consume=True,
+                                      consumer_token=TOKEN)
 
 
 def test_consume_requires_confirmed_consumption(jwks, receipts):
@@ -215,7 +242,8 @@ def test_consume_requires_confirmed_consumption(jwks, receipts):
         verifier, _ = _verifier(jwks, extra_handler=lambda r, body=body: httpx.Response(200, json=body),
                                 now=lambda: receipts["now_fresh"])
         with pytest.raises(ReceiptVerificationError):
-            verifier.authorize_action(artifact, terms, 900, consume=True)
+            verifier.authorize_action(artifact, terms, 900, consume=True,
+                                      consumer_token=TOKEN)
 
 
 def test_numeric_date_claims_must_be_integers(jwks, receipts):

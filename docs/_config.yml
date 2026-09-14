@@ -36,11 +36,15 @@ nav:
         url: /integration-options/
       - title: HTTP quickstart
         url: /http-quickstart/
+      - title: FAQ
+        url: /faq/
   - section: Concepts
     items:
       - title: Terms
         url: /terms/
       - title: Receipts
         url: /receipts/
+      - title: User-signed approvals
+        url: /user-signed-approvals/
       - title: Action enforcement
         url: /action-enforcement/

@@ -16,7 +16,7 @@ import {
   TransportError,
   type Terms,
 } from "../src/index.js";
-import { httpFixtures, jsonResponse } from "./helpers.js";
+import { httpFixtures, jsonResponse, userKeys } from "./helpers.js";
 
 const BASE = "https://yanez.test";
 const KEY = "yak_abc123abc123_s3cr3t-value";
@@ -186,6 +186,24 @@ test("long poll carries wait in the query", async () => {
     return jsonResponse(200, httpFixtures.poll_pending);
   }).getAuthorization("azr_x", 25);
   assert.strictEqual(seen?.search, "?wait=25");
+});
+
+test("userKeys returns the rows for keyIsRegistered", async () => {
+  let seenUrl = "";
+  let seenAuth: string | null = null;
+  const result = await client((url, init) => {
+    seenUrl = url.href;
+    seenAuth = new Headers(init.headers).get("authorization");
+    return jsonResponse(200, userKeys);
+  }).userKeys();
+  assert.strictEqual(seenUrl, `${BASE}/api/agent/user_keys`);
+  assert.strictEqual(seenAuth, `Bearer ${KEY}`);
+  assert.deepStrictEqual(result, { yid: userKeys.yid, keys: userKeys.keys });
+});
+
+test("userKeys 404 means the route is not deployed", async () => {
+  const c = client(() => jsonResponse(404, { detail: "Not Found" }));
+  await assert.rejects(c.userKeys(), FeatureUnavailableError);
 });
 
 test("a malformed request id never reaches the network", async () => {
