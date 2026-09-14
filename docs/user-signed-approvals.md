@@ -264,33 +264,43 @@ harness:
 ## Checking the key against the registry
 
 <div class="callout">
-  <div class="callout-title">Specified, not yet deployed</div>
-  <p>This endpoint is part of the contract but is not live yet. The helpers below take
-  the key array as an argument, so they work today against any source of registered
-  keys, and will work unchanged once the route ships.</p>
+  <div class="callout-title">Development only</div>
+  <p>This route is live on Development (<code>https://dev3.yanezcompliance.com</code>) and
+  not yet on Test or Production, where it returns <code>404</code>. The helpers below take
+  the key array as an argument, so they work unchanged once the route ships everywhere.</p>
 </div>
 
 An agent can ask which keys the registry holds for its own user, and at which tiers:
 
-```
+```http
 GET /api/agent/user_keys
-Authorization: Bearer <yak_ agent key>
+Authorization: Bearer yak_...
 ```
 
-The YID comes from the agent key. There is no YID parameter, so this cannot be used to
-enumerate anyone else's keys.
+The YID comes from the agent key. There is no YID parameter, and one sent as a query
+string is ignored, so this cannot be used to enumerate anyone else's keys.
 
 ```json
 {
   "yid": "a1b2c3...",
   "keys": [
-    {"tier": "high", "public_key": "a3c1..."},
-    {"tier": null,   "public_key": "55dd..."}
+    {"tier": "high", "public_key": "0xa3c1..."},
+    {"tier": null,   "public_key": "0x55dd..."}
   ]
 }
 ```
 
-Two uses, both optional:
+| Field | Meaning |
+|---|---|
+| `yid` | The YID the agent key belongs to. Compare it with the receipt's `sub` |
+| `keys` | Every registered key, oldest first. An empty list is a `200`, not an error |
+| `keys[].tier` | `low`, `medium`, `high`, or `null` when the registry holds no recognized tier. A `null`-tier key never verifies a decision |
+| `keys[].public_key` | `0x` + lowercase hex, spelled exactly like the `yanez_user_public_key` claim |
+
+A missing, malformed, or revoked agent key returns `401`. Device details such as platform
+and registration time are not returned.
+
+Two uses, both optional. The first checks a receipt's key:
 
 ```python
 from yanez_authz import key_is_registered
@@ -299,10 +309,25 @@ if not key_is_registered(receipt.user_proof.public_key, receipt.assurance_tier, 
     ...  # the receipt names a key the registry does not hold at that tier
 ```
 
-**Normalize before comparing.** The receipt claim carries a `0x` prefix and the registry
-does not. A raw string compare finds nothing, which reads as *this key is not the user's* —
-the most alarming possible way to be wrong. The helpers above normalize both sides; if you
-compare by hand, strip the prefix and lowercase first.
+```typescript
+import { keyIsRegistered } from "@yanez.ai/agent-authorization";
+
+if (!keyIsRegistered(receipt.userProof.publicKey, receipt.assuranceTier, keys)) {
+  // the receipt names a key the registry does not hold at that tier
+}
+```
+
+Neither SDK client calls the route for you yet. Fetch it with your HTTP client, using the
+same base URL and agent key as your create call, and pass its `keys` array to the helper.
+
+**Read it at verification time.** Keys carry no revocation state, so a cached copy proves
+nothing about the registry today.
+
+**Normalize if you compare by hand.** The route and the receipt claim now use the same
+spelling, but a key copied from anywhere else may lack the `0x` prefix or use uppercase
+hex. A raw string compare that misses reads as *this key is not the user's* — the most
+alarming possible way to be wrong. The helpers normalize both sides; if you compare by
+hand, strip the prefix and lowercase first.
 
 The second use is pre-flight: a tier **absent** from the list cannot be signed at, so an
 agent whose policy floor is `high` knows the request is futile before it prompts anyone. A

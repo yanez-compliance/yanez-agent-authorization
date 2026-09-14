@@ -1,12 +1,12 @@
 ---
 title: HTTP quickstart
-description: Create, poll, verify, and consume an authorization over the four HTTP routes.
+description: Create, poll, verify, and consume an authorization over the HTTP routes.
 ---
 
 # HTTP quickstart
 
 Full schemas: [the OpenAPI contract](https://github.com/yanez-compliance/yanez-agent-authorization/blob/main/openapi/agent-authorization.openapi.yaml).
-Four routes; the two agent
+Five routes; the three agent
 routes take `Authorization: Bearer yak_...`, the two relying-party routes are public.
 
 ## 1. Create a request (agent)
@@ -67,6 +67,22 @@ Authorization: Bearer yak_...
 `wait` long-polls 0–25 s. Exactly one status per response: `pending`, `approved`
 (non-null `artifact`), `rejected`, `expired`. Unknown and cross-key ids are the same
 `404`. Stop on rejection or expiry; do not create replacements in a loop.
+
+### Optional: list the user's signing keys (agent)
+
+```http
+GET /api/agent/user_keys
+Authorization: Bearer yak_...
+```
+
+`200` → `{"yid": "...", "keys": [{"tier": "high", "public_key": "0x..."}]}`. The YID
+comes from the agent key; there is no YID parameter. `tier` is `null` for a key with no
+recognized tier, and no keys is an empty list. Live on Development only for now.
+
+Use it to check that an approved receipt's `yanez_user_public_key` is registered at its
+`yanez_assurance_tier`, or before asking, to learn that a tier your policy requires has
+no key. Read it fresh each time rather than caching it. Details:
+[checking the key against the registry](user-signed-approvals.md#checking-the-key-against-the-registry).
 
 ## 3. Verify (relying party — no credentials)
 

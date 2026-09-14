@@ -321,9 +321,9 @@ def main() -> None:
             "cases": cases,
         },
         "user_keys": {
-            # GET /api/agent/user_keys (spec §4.9). Bare hex here on purpose: the
-            # registry spells keys without the 0x the receipt claim carries, and a
-            # verifier that compares the two without normalizing finds nothing.
+            # GET /api/agent/user_keys (spec §4.9). The route spells keys 0x + lowercase
+            # hex like the receipt claim; bare hex here on purpose, so a verifier that
+            # compares without normalizing fails this fixture instead of in production.
             "yid": YID,
             "keys": [
                 {"tier": TIER, "public_key": user_pk[2:]},

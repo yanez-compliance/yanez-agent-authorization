@@ -12,7 +12,7 @@ wire agent authorization into your stack. There is nothing to install.
 <p><a class="button" href="https://yanez-compliance.github.io/yanez-agent-authorization/llms.txt">Open llms.txt</a></p>
 
 The file follows the [llms.txt convention](https://llmstxt.org/): a short summary, the
-facts an agent must not get wrong (who verifies the receipt, the four routes, the
+facts an agent must not get wrong (who verifies the receipt, the HTTP routes, the
 credential rule), and links to every doc, SDK README, and example as raw markdown.
 
 ## On every page
@@ -82,7 +82,7 @@ GitHub URL:
 BASE=https://raw.githubusercontent.com/yanez-compliance/yanez-agent-authorization/main
 
 curl "$BASE/docs/integration-options.md"              # choosing an integration path
-curl "$BASE/docs/http-quickstart.md"                  # the four HTTP routes
+curl "$BASE/docs/http-quickstart.md"                  # the HTTP routes
 curl "$BASE/docs/terms.md"                            # every field of what the human approves
 curl "$BASE/docs/receipts.md"                         # receipt claims, signing, key rotation
 curl "$BASE/docs/action-enforcement.md"               # the action executor's contract

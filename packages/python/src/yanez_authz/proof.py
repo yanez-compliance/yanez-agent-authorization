@@ -351,9 +351,9 @@ def key_is_registered(public_key: str, tier: str, registered_keys: Any) -> bool:
     """Is this the user's key, at the tier it claims?
 
     `registered_keys` is the `keys` array from `GET /api/agent/user_keys` (spec §4.9).
-    Both sides are normalized before comparison — the receipt claim carries a `0x`
-    prefix and the device list envelope does not, and a raw string compare between the
-    two silently reports every key as unregistered.
+    Both sides are normalized before comparison. The route and the receipt claim both
+    spell keys `0x` + lowercase hex, but a key from any other source may drop the prefix
+    or change case, and a raw string compare then silently reports it as unregistered.
 
     This is a second read path over Yanez's own storage, not independent verification:
     the registry and the receipt have the same operator. It catches a receipt whose

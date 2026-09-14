@@ -397,6 +397,43 @@ components:
       - amount
       - details
       type: object
+    UserKeysOut:
+      properties:
+        keys:
+          description: Every registered key for the yid, in registry order. Empty
+            when none.
+          items:
+            properties:
+              public_key:
+                description: '0x-prefixed lowercase hex, the same spelling as the
+                  yanez_user_public_key receipt claim.
+
+                  '
+                type: string
+              tier:
+                description: 'The key''s assurance tier, or null when the registry
+                  holds no recognized tier. A null-tier key never verifies a decision.
+
+                  '
+                enum:
+                - low
+                - medium
+                - high
+                - null
+                nullable: true
+                type: string
+            required:
+            - tier
+            - public_key
+            type: object
+          type: array
+        yid:
+          description: The yid the agent key belongs to.
+          type: string
+      required:
+      - yid
+      - keys
+      type: object
   securitySchemes:
     AgentApiKey:
       bearerFormat: YanezAgentKey
@@ -564,6 +601,33 @@ paths:
       security:
       - AgentApiKey: []
       summary: Poll for the user's decision
+  /api/agent/user_keys:
+    get:
+      description: 'Returns the signing keys and assurance tiers registered for the
+        user who issued this agent key. The yid comes from the agent key; the route
+        takes no yid parameter. Use it to check that a receipt''s yanez_user_public_key
+        is registered at the claimed yanez_assurance_tier, or to learn before asking
+        that a required tier has no key. Read it at verification time: keys carry
+        no revocation state, so a cached copy proves nothing.
+
+        '
+      operationId: agentUserKeys
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserKeysOut'
+          description: The user's registered keys. An empty list is not an error.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Missing, malformed, or revoked agent key.
+      security:
+      - AgentApiKey: []
+      summary: List the user's registered signing keys
   /api/authz/introspect:
     post:
       description: 'Unauthenticated: the receipt itself is the bearer proof. Signature
