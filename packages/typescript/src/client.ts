@@ -4,6 +4,7 @@ import {
   PendingAuthorization,
   TERMINAL,
   Terms,
+  UserKeys,
 } from "./models.js";
 
 /** Injectable for tests; defaults to the platform fetch. */
@@ -223,6 +224,30 @@ export class AuthorizationClient {
       consentNotAfter: data.consent_not_after ?? undefined,
       decidedAt: data.decided_at ?? undefined,
     };
+  }
+
+  /**
+   * The signing keys and tiers registered for this agent key's user (spec §4.9).
+   *
+   * Pass `.keys` to `keyIsRegistered` to check a receipt's key. The yid comes from the
+   * agent key, so there is no way to ask about another user.
+   */
+  async userKeys(options: { signal?: AbortSignal } = {}): Promise<UserKeys> {
+    let response: Response;
+    try {
+      response = await this.fetchFn(`${this.baseUrl}/api/agent/user_keys`, {
+        headers: { ...this.#headers },
+        redirect: "manual",
+        signal: this.signalFor(this.timeoutSeconds, options.signal),
+      });
+    } catch (e) {
+      rethrowIfAborted(e, options.signal);
+      throw new TransportError(errName(e));
+    }
+    // The route takes no id, so a 404 can only mean it is not deployed here.
+    await raiseFor(response, { create: true });
+    const data = (await response.json()) as any;
+    return { yid: data.yid, keys: data.keys };
   }
 
   /**

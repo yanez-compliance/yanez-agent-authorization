@@ -10,7 +10,7 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from yanez_authz.errors import InvalidRequestError, TransportError, error_for_status
-from yanez_authz.models import TERMINAL, AuthorizationResult, PendingAuthorization
+from yanez_authz.models import TERMINAL, AuthorizationResult, PendingAuthorization, UserKeys
 
 _LOOPBACK = {"localhost", "127.0.0.1", "::1"}
 # Server ids look like azr_<hex>; anything outside this set could only be an attempt
@@ -178,6 +178,21 @@ class AuthorizationClient:
             consent_not_after=data.get("consent_not_after"),
             decided_at=data.get("decided_at"),
         )
+
+    async def user_keys(self) -> UserKeys:
+        """The signing keys and tiers registered for this agent key's user (spec §4.9).
+
+        Pass `.keys` to `key_is_registered` to check a receipt's key. The yid comes from
+        the agent key, so there is no way to ask about another user.
+        """
+        try:
+            response = await self._client.get("/api/agent/user_keys")
+        except httpx.TransportError as e:
+            raise TransportError(type(e).__name__) from None
+        # The route takes no id, so a 404 can only mean it is not deployed here.
+        _raise_for(response, create=True)
+        data = response.json()
+        return UserKeys(yid=data["yid"], keys=data["keys"])
 
     async def wait_for_authorization(
         self,

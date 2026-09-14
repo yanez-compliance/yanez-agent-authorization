@@ -33,6 +33,7 @@ from yanez_authz.models import (
     AuthorizationResult,
     IntrospectionResult,
     PendingAuthorization,
+    UserKeys,
     VerifiedReceipt,
 )
 from yanez_authz.proof import (
@@ -54,6 +55,7 @@ __version__ = "0.1.0b4"
 __all__ = [
     "AuthorizationClient", "ReceiptVerifier",
     "PendingAuthorization", "AuthorizationResult", "IntrospectionResult", "VerifiedReceipt",
+    "UserKeys",
     "YanezAuthzError", "AuthenticationError", "InvalidRequestError", "TermsTooLargeError",
     "RateLimitError", "ConflictError", "NotFoundError", "FeatureUnavailableError",
     "TransportError", "ReceiptVerificationError", "ConsentPolicyError", "AlreadyConsumedError",

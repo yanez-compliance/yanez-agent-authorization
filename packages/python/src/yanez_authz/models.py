@@ -33,6 +33,18 @@ class AuthorizationResult:
 
 
 @dataclass(frozen=True)
+class UserKeys:
+    """The signing keys registered for the agent key's own user (spec §4.9).
+
+    `keys` holds the rows as the server sent them — `{"tier": ..., "public_key": "0x..."}`,
+    `tier` None when unrecognized — so it passes straight to `key_is_registered`. Keys
+    carry no revocation state: read them at verification time rather than caching.
+    """
+    yid: str
+    keys: list[dict[str, Optional[str]]]
+
+
+@dataclass(frozen=True)
 class IntrospectionResult:
     """What the issuer says about a receipt, and whether you may act on it.
 

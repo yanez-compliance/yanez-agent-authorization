@@ -62,6 +62,7 @@ export {
   type IntrospectionResult,
   type PendingAuthorization,
   type Terms,
+  type UserKeys,
   type VerifiedReceipt,
 } from "./models.js";
 export {

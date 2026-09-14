@@ -305,6 +305,7 @@ Two uses, both optional. The first checks a receipt's key:
 ```python
 from yanez_authz import key_is_registered
 
+keys = (await client.user_keys()).keys  # client is your AuthorizationClient
 if not key_is_registered(receipt.user_proof.public_key, receipt.assurance_tier, keys):
     ...  # the receipt names a key the registry does not hold at that tier
 ```
@@ -312,13 +313,14 @@ if not key_is_registered(receipt.user_proof.public_key, receipt.assurance_tier, 
 ```typescript
 import { keyIsRegistered } from "@yanez.ai/agent-authorization";
 
+const { keys } = await client.userKeys(); // client is your AuthorizationClient
 if (!keyIsRegistered(receipt.userProof.publicKey, receipt.assuranceTier, keys)) {
   // the receipt names a key the registry does not hold at that tier
 }
 ```
 
-Neither SDK client calls the route for you yet. Fetch it with your HTTP client, using the
-same base URL and agent key as your create call, and pass its `keys` array to the helper.
+Where the route is not deployed, `user_keys()` / `userKeys()` raises
+`FeatureUnavailableError`.
 
 **Read it at verification time.** Keys carry no revocation state, so a cached copy proves
 nothing about the registry today.

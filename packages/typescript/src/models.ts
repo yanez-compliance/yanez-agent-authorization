@@ -1,4 +1,4 @@
-import type { UserProof } from "./proof.js";
+import type { RegisteredKey, UserProof } from "./proof.js";
 
 // Wire statuses, verbatim. Exactly one per response; only `approved` carries an artifact.
 export type AuthorizationStatus = "pending" | "approved" | "rejected" | "expired";
@@ -63,6 +63,18 @@ export interface AuthorizationResult {
   // ISO timestamps as the server sent them; parse only if you need arithmetic.
   consentNotAfter?: string;
   decidedAt?: string;
+}
+
+/**
+ * The signing keys registered for the agent key's own user (spec §4.9).
+ *
+ * `keys` holds the rows as the server sent them, so it passes straight to
+ * `keyIsRegistered`. Keys carry no revocation state: read them at verification time
+ * rather than caching.
+ */
+export interface UserKeys {
+  yid: string;
+  keys: RegisteredKey[];
 }
 
 /**
