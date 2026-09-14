@@ -20,13 +20,14 @@ import { httpFixtures, jsonResponse } from "./helpers.js";
 
 const BASE = "https://yanez.test";
 const KEY = "yak_abc123abc123_s3cr3t-value";
-const TERMS = {
+const TERMS: Terms = {
+  schema_version: 1,
   action: "purchase",
   approval_title: "Purchase running shoes",
   summary: "Buy running shoes for $180.00 at Example Store",
   merchant: "Example Store",
   currency: "USD",
-  amount: { minor_units: 18000, currency: "USD", display: "$180.00" },
+  amount: { minor_units: 18000, currency: "USD" },
   details: [
     { label: "Merchant", value: "Example Store", emphasized: false },
     { label: "Item", value: "Running shoes, model X, size 10", emphasized: false },
@@ -96,11 +97,22 @@ test("a schema 422 names the field paths and never echoes the payload", async ()
 // too — an inline literal with extras in `amount` and a `details` row has to type-check.
 const _extraKeysEverywhere: Terms = {
   ...TERMS,
-  amount: { ...TERMS.amount, tax_minor_units: 0 },
+  amount: { ...TERMS.amount!, tax_minor_units: 0 },
   details: [{ label: "Item", value: "Shoes", emphasized: false, icon: "cart" }],
   item_id: "sku_123",
 };
 void _extraKeysEverywhere;
+
+// Compile-time check: non-financial authorizations omit the entire money pair.
+const _nonFinancialTerms: Terms = {
+  schema_version: 1,
+  action: "document.signature.authorize",
+  approval_title: "Authorize NDA signature",
+  summary: "Authorize your signature on this exact NDA.",
+  merchant: "Documenso",
+  details: [{ label: "Document", value: "Mutual NDA" }],
+};
+void _nonFinancialTerms;
 
 const STATUS_CASES: [number, new (m: string) => Error, boolean][] = [
   [400, InvalidRequestError, true],

@@ -1,6 +1,6 @@
 ---
 title: Terms
-description: The object the human approves — every required field, and what each one must contain.
+description: The object the human approves — required action fields and optional financial terms.
 ---
 
 # Terms
@@ -10,23 +10,23 @@ validates its shape on create and answers `422` when a field is missing, blank, 
 wrong type. Every field is also a promise to the approver, because the YID app renders
 them on the approval screen.
 
-Every field in the following table is required. A string field must hold at least one
-non-whitespace character. The whole object is capped at 4 KB of compact JSON, and the
-server answers `413` above that.
+Required string fields must hold at least one non-whitespace character. The whole object
+is capped at 4 KB of compact JSON, and the server answers `413` above that.
 
-| Field | Type | Meaning |
-|---|---|---|
-| `action` | string | What kind of action this is, such as `purchase`. Free-form for now. Keep it short, lowercase, and identical across identical operations, so a relying party can branch on it |
-| `approval_title` | string | The headline the YID app shows the approver. Name the action, not your product |
-| `summary` | string | The line under the title. State the whole action in one sentence, including the amount |
-| `merchant` | string | The seller's name, spelled the way the approver recognizes it |
-| `currency` | string | Currency of the action. Use the ISO 4217 alpha-3 code, such as `USD`. The server checks only that the string isn't blank |
-| `amount` | object | What gets charged, described in the following section |
-| `details` | array | The rows the app renders as a table, described in the following section |
+| Field | Required | Type | Meaning |
+|---|---|---|---|
+| `schema_version` | yes | integer | Must currently be `1` |
+| `action` | yes | string | What kind of action this is, such as `purchase`. Keep it short, lowercase, and identical across identical operations |
+| `approval_title` | yes | string | The headline the YID app shows the approver |
+| `summary` | yes | string | One sentence stating the whole action, including the amount when one exists |
+| `merchant` | yes | string | The seller, counterparty, or service name the approver recognizes |
+| `details` | yes | array | The rows the app renders as a table, described below |
+| `currency` | no | string | ISO 4217 alpha-3 code such as `USD`. Required whenever `amount` is present |
+| `amount` | no | object | What gets charged. Omit for non-financial actions |
 
-`merchant`, `currency`, and `amount` are required for every action today, including
-actions that move no money, because the app renders one approval screen for every
-action. Non-money profiles are unsettled and this requirement can relax later.
+For an action such as signing a document, granting access, or publishing content, omit
+both `amount` and `currency`. YanezYID then omits the Amount row entirely. Do not send a
+zero-dollar placeholder.
 
 Extra keys are allowed at every level. Domain fields the relying party matches on, such
 as an item id, a resource id, or a scope list, go alongside the required ones; the
@@ -36,22 +36,23 @@ checks.
 
 ## amount
 
+`amount` is optional. When it is present, top-level `currency` is required and must
+match `amount.currency`.
+
 | Field | Type | Meaning |
 |---|---|---|
-| `minor_units` | integer | The amount as a whole number of the currency's minor unit, which is the smallest denomination the currency charges in. Under `USD` the minor unit is the cent, so `18000` is $180.00. Under a zero-decimal currency such as `JPY` the minor unit is the yen, so `18000` is ¥18,000. Must be a non-negative integer no greater than 9223372036854775807, which is 2^63 - 1 and the largest value the YID app can decode. Never a float and never a decimal string |
+| `minor_units` | integer | The amount as a whole number of the currency's minor unit. Under `USD`, `18000` is $180.00. Must be a non-negative integer no greater than 2^53 - 1. Never a float or decimal string |
 | `currency` | string | Must equal the top-level `currency` exactly |
-| `display` | string | The amount as the approver reads it, formatted for the currency, such as `"$180.00"` |
 
-**Caution:** `display` is what the human sees, and `minor_units` is what gets charged.
-The server can't tell you the two disagree. Derive `display` from `minor_units` and
-`currency` in one place instead of passing them in separately.
+Do not include `display`. YanezYID formats the authoritative integer and currency itself.
 
 ## details
 
-Each entry has three required fields: `label` and `value` are non-blank strings, and
-`emphasized` is a boolean carried on every entry, where `true` renders the row with
-visual emphasis. The app renders the entries as a two-column table in array order, so
-the array order is the reading order. The app doesn't sort, merge, or drop rows.
+Each entry requires `label` and `value` as non-blank strings. `emphasized` is optional;
+set it to `true` to render a row with visual emphasis, or omit it for standard emphasis.
+When supplied, it must be a boolean. The app renders the entries as a two-column table
+in array order, so the array order is the reading order. The app doesn't sort, merge,
+or drop rows.
 
 The array can be empty, but give it rows. The table is where the approver checks the
 specifics of what they're agreeing to, and a screen carrying only a title and a summary
@@ -59,8 +60,8 @@ leaves them less to check.
 
 ## agent_name
 
-`agent_name` is the one optional field. It names the agent doing the asking, and the YID
-app shows it on the approval screen:
+`agent_name` names the agent doing the asking, and the YID app shows it on the approval
+screen:
 
 ```json
 {"agent_name": "Shopping agent"}
@@ -71,20 +72,43 @@ string is a `422` rather than a fallback, because the app reads `null` as "use t
 label" and a blank string as "show nothing", so the server refuses the one that renders
 an empty name. Any non-string value is a `422` as well.
 
-## An example
+## Financial example
 
 ```json
 {
+  "schema_version": 1,
   "action": "purchase",
   "approval_title": "Purchase running shoes",
   "summary": "Buy running shoes for $180.00 at Example Store",
   "merchant": "Example Store",
   "currency": "USD",
-  "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+  "amount": {"minor_units": 18000, "currency": "USD"},
   "details": [
     {"label": "Merchant", "value": "Example Store", "emphasized": false},
     {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": false},
     {"label": "Amount", "value": "$180.00", "emphasized": true}
+  ]
+}
+```
+
+## Non-financial example
+
+Omit `amount`, `currency`, and unnecessary presentation hints for an action with no
+monetary component:
+
+```json
+{
+  "schema_version": 1,
+  "action": "document.signature.authorize",
+  "approval_title": "Sign mutual NDA",
+  "summary": "Authorize your signature on the mutual NDA with Yanez Pulse.",
+  "merchant": "Documenso",
+  "details": [
+    {"label": "Document", "value": "Mutual Non-Disclosure Agreement"},
+    {"label": "Counterparty", "value": "Yanez Pulse"},
+    {"label": "Signing as", "value": "Yanez AI"},
+    {"label": "Agreement ID", "value": "NDA-2026-0914"},
+    {"label": "Governing law", "value": "California"}
   ]
 }
 ```
@@ -98,11 +122,10 @@ Profiles per action type (purchase, disclosure, permission):
 
 ## Terms are compared whole
 
-Every field travels into the receipt as `yanez_terms` and is compared by deep JSON
-equality at enforcement time, display strings included. Re-titling an approval screen
-or reformatting `display` produces terms that no longer match what the action executor
-expects, so build the object once and hand the same object to both the create call and
-the executor: [receipts](receipts.md).
+Every supplied field travels into the receipt as `yanez_terms` and is compared by deep
+JSON equality at enforcement time. Adding or removing an amount changes the terms, so
+build the object once and hand the same object to both the create call and the executor:
+[receipts](receipts.md).
 
 If any material field changes after approval — counterparty, resource, amount,
 currency, destination, scope, deadline — the old receipt must not be used. New terms

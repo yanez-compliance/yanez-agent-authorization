@@ -17,12 +17,13 @@ Authorization: Bearer yak_...
 Idempotency-Key: b1946ac92492d234
 Content-Type: application/json
 
-{"terms": {"action": "purchase",
+{"terms": {"schema_version": 1,
+           "action": "purchase",
            "approval_title": "Purchase running shoes",
            "summary": "Buy running shoes for $180.00 at Example Store",
            "merchant": "Example Store",
            "currency": "USD",
-           "amount": {"minor_units": 18000, "currency": "USD", "display": "$180.00"},
+           "amount": {"minor_units": 18000, "currency": "USD"},
            "details": [{"label": "Merchant", "value": "Example Store", "emphasized": false},
                        {"label": "Item", "value": "Running shoes, model X, size 10", "emphasized": false},
                        {"label": "Amount", "value": "$180.00", "emphasized": true}]},
@@ -30,8 +31,9 @@ Content-Type: application/json
  "intent_expires_at": "<RFC 3339 timestamp in the future>"}
 ```
 
-Every field of `terms` is required, and the YID app renders it to the approver. Field
-rules, including the `amount` and `details` shapes: [terms](terms.md).
+The core action fields are required. For non-financial actions, omit `amount` and
+`currency`; the YID app then omits the Amount row. Field rules, including the optional
+`amount` and `details[].emphasized` fields: [terms](terms.md).
 
 `201` → `{"request_id": "azr_...", "status": "pending", "decide_by": "..."}`.
 

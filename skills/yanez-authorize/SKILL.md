@@ -38,12 +38,13 @@ Use whichever adapter this host provides — never raw HTTP, and never handle th
 ## Rules
 
 1. Assemble ALL material terms first; show them to the user in conversation before
-   calling. Every field is required, and a missing or blank one is a `422` (details in
-   `references/terms-guidance.md`): a short specific `action`; an `approval_title` and a
-   one-line `summary` for the approval screen; `merchant`; `currency`; `amount` as
-   `{minor_units, currency, display}`, with `minor_units` a whole number of the
-   currency's minor unit; and `details`, the `label`/`value`/`emphasized` rows the app
-   renders in array order. `agent_name` is optional and names your agent on the screen;
+   calling. Required fields are `schema_version: 1`; a short specific `action`; an
+   `approval_title` and a one-line `summary` for the approval screen; `merchant`; and
+   `details`, the `label`/`value` rows the app renders in array order (details in
+   `references/terms-guidance.md`). A detail may include boolean `emphasized`; omit it
+   for standard emphasis. For financial actions, include `currency` and
+   `amount` as `{minor_units, currency}`. Omit both for non-financial actions so the app
+   omits the Amount row. `agent_name` is optional and names your agent on the screen;
    omit it or send `null` to fall back to the agent key's label. The specifics go in
    `details`: counterparty and resource identifiers, destination and data categories for
    disclosures, scope and duration for permissions.

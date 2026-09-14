@@ -61,12 +61,13 @@ def build_server(settings: Optional[Settings] = None,
         internal retry.
 
         `terms` must carry all of the following, or the server answers 422 naming every
-        offending field: action, approval_title, summary, merchant, currency (non-blank
-        strings); amount as {minor_units, currency, display}, with minor_units a whole
-        number of the currency's minor unit (18000 is $180.00 under USD) and currency
-        equal to the top-level one; details as an array of {label, value, emphasized}
-        rows the app renders in order (may be empty). agent_name is optional. The
-        approver sees these fields verbatim, and they are embedded in the receipt."""
+        offending field: schema_version (currently 1); action, approval_title, summary,
+        and merchant (non-blank strings); plus details as an array of {label, value}
+        rows the app renders in order (may be empty). A detail may include boolean
+        emphasized; omit it for standard emphasis. For financial actions, include
+        currency and amount as {minor_units, currency}; omit both for non-financial
+        actions so the app omits the Amount row. agent_name is optional. The approver
+        sees these fields verbatim, and they are embedded in the receipt."""
         try:
             pending = await (await _client()).request_authorization(
                 terms, decision_window_seconds=decision_window_seconds,

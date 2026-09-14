@@ -10,16 +10,17 @@ Full field reference:
 
 ## Required shape
 
-Every field is required on every action, including actions that move no money:
+Financial action:
 
 ```json
 {
+  "schema_version": 1,
   "action": "purchase",
   "approval_title": "Purchase PEP Research queries",
   "summary": "Buy a bundle of 10 Yanez PEP Research queries",
   "merchant": "Yanez PEP Research",
   "currency": "USD",
-  "amount": {"minor_units": 100, "currency": "USD", "display": "$1.00"},
+  "amount": {"minor_units": 100, "currency": "USD"},
   "details": [
     {"label": "Merchant", "value": "Yanez PEP Research", "emphasized": false},
     {"label": "Bundle", "value": "10 PEP Research queries", "emphasized": false},
@@ -35,18 +36,20 @@ Rules:
   `grant_permission`. Free-form for now, so keep it identical across identical
   operations.
 - `approval_title` names the action, not your product. `summary` states the whole
-  action in one line, including the amount.
+  action in one line, including the amount when one exists.
 - `amount.minor_units` is a non-negative integer in the currency's minor unit: `100`
   under `USD` is $1.00, `100` under `JPY` is ¥100. Never a float, never a decimal
-  string, and never above 2^63 - 1, the largest value the app can decode.
-- `amount.currency` equals the top-level `currency`. `amount.display` is the same
-  number formatted for a human, derived from `minor_units` in one place so the two
-  can't drift.
+  string, and never above 2^53 - 1.
+- `amount.currency` equals the top-level `currency`. Do not send `display`; the app
+  formats the authoritative amount itself.
 - `details` renders as a two-column table in array order, so the array order is the
-  reading order. `label`, `value`, and `emphasized` are required on every entry.
-  Emphasize the amount row. The array can be empty, but rows are what the approver
-  checks, so include them.
-- `agent_name` is the one optional field. It names your agent on the approval screen.
+  reading order. `label` and `value` are required on every entry. `emphasized` is an
+  optional boolean; omit it for standard emphasis. Emphasize the amount row when that
+  helps the approver. The array can be empty, but rows are what the approver checks, so
+  include them.
+- `currency` and `amount` are optional as a pair. Omit both for non-financial actions;
+  the app then omits its Amount row. Never invent a zero-dollar placeholder.
+- `agent_name` names your agent on the approval screen.
   Omit it or send `null` to fall back to the agent key's label; a blank string is a
   `422`, not a fallback.
 - Extra keys are allowed at every level. Domain fields the relying party matches on
@@ -57,22 +60,39 @@ Rules:
 - Any other decimal quantity travels as a string (`"1.5"`), never a float.
 - Under 4 KB of compact JSON.
 
-Display strings are part of the compared terms. Build the object once and hand the same
-object to both the create call and the action executor.
+Build the object once and hand the same object to both the create call and the action
+executor.
 
 ## Profiles
 
-Data disclosure. The counterparty goes in `merchant`, and a free action still carries
-an amount:
+Document signing. Money fields and optional presentation hints are omitted:
 
 ```json
 {
+  "schema_version": 1,
+  "action": "document.signature.authorize",
+  "approval_title": "Sign mutual NDA",
+  "summary": "Authorize your signature on the mutual NDA with Yanez Pulse.",
+  "merchant": "Documenso",
+  "details": [
+    {"label": "Document", "value": "Mutual Non-Disclosure Agreement"},
+    {"label": "Counterparty", "value": "Yanez Pulse"},
+    {"label": "Signing as", "value": "Yanez AI"},
+    {"label": "Agreement ID", "value": "NDA-2026-0914"},
+    {"label": "Governing law", "value": "California"}
+  ]
+}
+```
+
+Data disclosure. The counterparty goes in `merchant`; money fields are omitted:
+
+```json
+{
+  "schema_version": 1,
   "action": "disclose_data",
   "approval_title": "Share your August health report",
   "summary": "Send the August health report to Example Clinic",
   "merchant": "Example Clinic",
-  "currency": "USD",
-  "amount": {"minor_units": 0, "currency": "USD", "display": "No charge"},
   "details": [
     {"label": "Recipient", "value": "Example Clinic", "emphasized": false},
     {"label": "Report", "value": "August 2026 health report", "emphasized": true},
@@ -86,12 +106,11 @@ Permission change:
 
 ```json
 {
+  "schema_version": 1,
   "action": "grant_permission",
   "approval_title": "Give Example App your calendar",
   "summary": "Allow Example App to read calendar events for 7 days",
   "merchant": "Example App",
-  "currency": "USD",
-  "amount": {"minor_units": 0, "currency": "USD", "display": "No charge"},
   "details": [
     {"label": "App", "value": "Example App", "emphasized": false},
     {"label": "Access", "value": "Read calendar events", "emphasized": true},

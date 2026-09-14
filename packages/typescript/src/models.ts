@@ -14,27 +14,33 @@ export const TERMINAL: ReadonlySet<string> = new Set([APPROVED, REJECTED, EXPIRE
  * Field rules: https://yanez-compliance.github.io/yanez-agent-authorization/terms/
  */
 export interface Terms {
+  /** Terms profile version. Must currently be 1. */
+  schema_version: 1;
   /** Short, lowercase, identical across identical operations; free-form for now. */
   action: string;
   /** The headline on the approval screen. */
   approval_title: string;
-  /** One line under the title stating the whole action, amount included. */
+  /** One line stating the whole action, including the amount when present. */
   summary: string;
-  /** The seller's name as the approver knows it. */
+  /** The counterparty or service name as the approver knows it. */
   merchant: string;
-  /** ISO 4217 code such as "USD"; the server checks only that it isn't blank. */
-  currency: string;
-  amount: {
-    /** Whole number of the currency's minor unit, 0 to 2^63-1: 18000 is $180.00 under USD. */
+  /** ISO 4217 code such as "USD". Optional when the action has no amount. */
+  currency?: string;
+  /** Omit for non-financial actions; YanezYID then hides the Amount row. */
+  amount?: {
+    /** Whole number of the currency's minor unit, 0 to 2^53-1: 18000 is $180.00 under USD. */
     minor_units: number;
     /** Must equal the top-level currency exactly. */
     currency: string;
-    /** The amount as the approver reads it, such as "$180.00". */
-    display: string;
     [extra: string]: unknown;
   };
   /** Rendered as a two-column table in array order. May be empty. */
-  details: { label: string; value: string; emphasized: boolean; [extra: string]: unknown }[];
+  details: {
+    label: string;
+    value: string;
+    emphasized?: boolean;
+    [extra: string]: unknown;
+  }[];
   /** Names the asking agent; omit or null to fall back to the agent key's label. */
   agent_name?: string | null;
   [extra: string]: unknown;
