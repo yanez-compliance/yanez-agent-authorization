@@ -38,6 +38,8 @@ nav:
         url: /http-quickstart/
       - title: FAQ
         url: /faq/
+      - title: Showcase
+        url: /showcase/
   - section: Concepts
     items:
       - title: Terms
