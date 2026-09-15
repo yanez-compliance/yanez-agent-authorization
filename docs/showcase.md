@@ -1,12 +1,14 @@
 ---
 title: Showcase
-description: Agents that Yanez developers built on Yanez Pulse, with links to try each one.
+description: Apps that Yanez developers built on the YID registry, from Pulse agents to partner integrations.
 ---
 
 # Showcase
 
-Agents built on **Yanez Pulse**. Each one asks a human to approve a sensitive action in the
-YID app before anything happens. Open a site to try the flow end to end.
+Apps built on the YID registry: agents that ask a human for approval through **Yanez Pulse**, and
+partner apps that verify people with YID.
+
+## Agents on Pulse
 
 <ul class="showcase">
   <li>
@@ -19,8 +21,24 @@ YID app before anything happens. Open a site to try the flow end to end.
   </li>
   <li>
     <a href="{{ '/assets/showcase/itkan-purchase-story.mp4' | relative_url }}" data-popup="video"><img src="{{ '/assets/showcase/itkan.png' | relative_url }}" width="196" height="48" alt="Itkan: play the purchase story video"></a>
-    <span class="showcase-label">Biometric approval for a robotics purchase</span>
-    <a class="showcase-more" href="{{ '/assets/showcase/itkan-dashboard.png' | relative_url }}" data-popup="image">Dashboard</a>
+    <span class="showcase-label">Biometric approval for a robotics purchase <a class="showcase-more" href="{{ '/assets/showcase/itkan-dashboard.png' | relative_url }}" data-popup="image">Dashboard</a></span>
+  </li>
+</ul>
+
+## Partner apps on YID
+
+<ul class="showcase">
+  <li>
+    <a href="https://www.dfusion.ai/" target="_blank" rel="noopener"><img src="{{ '/assets/showcase/dfusion.png' | relative_url }}" width="196" height="48" alt="dFusion AI"></a>
+    <span class="showcase-label">Source and synthesize data into high-performance AI assets</span>
+  </li>
+  <li>
+    <a href="https://syklo.io/en/" target="_blank" rel="noopener"><img src="{{ '/assets/showcase/syklo.png' | relative_url }}" width="196" height="48" alt="Syklo"></a>
+    <span class="showcase-label">Dollars within reach for everyone</span>
+  </li>
+  <li>
+    <a href="https://biovault-dev.yanezcompliance.com/" target="_blank" rel="noopener"><img src="{{ '/assets/showcase/biovault.png' | relative_url }}" width="196" height="48" alt="BioVault"></a>
+    <span class="showcase-label">Your face is your key</span>
   </li>
 </ul>
 
