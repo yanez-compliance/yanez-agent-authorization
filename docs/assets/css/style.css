@@ -406,3 +406,10 @@ a:hover { text-decoration: underline; }
 .showcase-label { color: var(--heading); font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
 /* YID Wallet's hero gradient (#9c93ff, #e0b25a, #3ddc97), deepened to stay readable on white */
 .showcase-grad { background: linear-gradient(90deg, #6d62e8, #c28a2c 60%, #179e68); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.showcase-more { font-size: 14px; font-weight: 600; line-height: 1.5; color: var(--brand); border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px; }
+.showcase-more:hover { background: var(--brand-soft); border-color: var(--brand); text-decoration: none; }
+/* popup for the video and dashboard; tall images scroll inside it */
+.showcase-popup { width: min(96vw, 1100px); max-width: none; max-height: 92vh; overflow: auto; padding: 0; border: 0; border-radius: 12px; background: #09111f; }
+.showcase-popup::backdrop { background: rgba(26, 31, 54, 0.7); }
+.showcase-popup video, .showcase-popup img { display: block; width: 100%; height: auto; }
+.showcase-close { position: sticky; top: 10px; z-index: 1; float: right; margin: 10px 10px -46px 0; width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: var(--heading); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
