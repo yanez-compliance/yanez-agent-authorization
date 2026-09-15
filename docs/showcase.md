@@ -25,7 +25,7 @@ partner apps that verify people with YID.
   </li>
 </ul>
 
-## Partner apps on YID
+## Partner Apps Powered By YID
 
 <ul class="showcase">
   <li>
