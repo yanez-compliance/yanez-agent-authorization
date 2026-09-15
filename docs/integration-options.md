@@ -43,7 +43,7 @@ pip install --pre yanez-agent-authorization
 ```
 
 For a reproducible install, pin the exact build instead, for example
-`pip install yanez-agent-authorization==0.1.0b4`. The
+`pip install yanez-agent-authorization==0.1.0b5`. The
 [release history](https://pypi.org/project/yanez-agent-authorization/#history) lists
 every published version.
 
