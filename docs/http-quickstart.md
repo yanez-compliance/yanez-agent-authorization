@@ -31,8 +31,9 @@ Content-Type: application/json
  "intent_expires_at": "<RFC 3339 timestamp in the future>"}
 ```
 
-Every field of `terms` is required, and the YID app renders it to the approver. Field
-rules, including the `amount` and `details` shapes: [terms](terms.md).
+The core action fields are required. For non-financial actions, omit `amount` and
+`currency`; the YID app then omits the Amount row. Field rules, including the optional
+`amount` and `details[].emphasized` fields: [terms](terms.md).
 
 `201` → `{"request_id": "azr_...", "status": "pending", "decide_by": "..."}`.
 

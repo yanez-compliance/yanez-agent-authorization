@@ -321,10 +321,12 @@ components:
           minLength: 1
           type: string
         amount:
-          description: 'No `display` field. A pre-formatted string can contradict
-            the authoritative value and is the half a user reads, so terms carrying
-            it are rejected. The apps format from minor_units and the currency''s
-            own minor-unit exponent, and must not assume two decimal places.
+          description: 'Optional. Omit the entire field for non-financial actions;
+            the apps then omit the Amount row. When supplied, currency is also required.
+            No `display` field. A pre-formatted string can contradict the authoritative
+            value and is the half a user reads, so terms carrying it are rejected.
+            The apps format from minor_units and the currency''s own minor-unit exponent,
+            and must not assume two decimal places.
 
             '
           properties:
@@ -347,8 +349,9 @@ components:
           minLength: 1
           type: string
         currency:
-          description: 'An ISO 4217 alpha-3 code from the configured allowlist. A
-            code outside it is a 400; there is no embedded full ISO 4217 table.
+          description: 'Optional when the action has no monetary component. When supplied,
+            it must be an ISO 4217 alpha-3 code from the configured allowlist. It
+            is required whenever amount is present.
 
             '
           example: USD
@@ -358,6 +361,7 @@ components:
           items:
             properties:
               emphasized:
+                description: Optional. Omit for standard emphasis.
                 type: boolean
               label:
                 minLength: 1
@@ -368,7 +372,6 @@ components:
             required:
             - label
             - value
-            - emphasized
             type: object
           type: array
         merchant:
@@ -393,8 +396,6 @@ components:
       - approval_title
       - summary
       - merchant
-      - currency
-      - amount
       - details
       type: object
     UserKeysOut:

@@ -38,14 +38,16 @@ Use whichever adapter this host provides — never raw HTTP, and never handle th
 ## Rules
 
 1. Assemble ALL material terms first; show them to the user in conversation before
-   calling. Every field is required, and a missing or blank one is a `422` (details in
-   `references/terms-guidance.md`): `schema_version`, the integer `1`; a short specific
-   `action`; an `approval_title` and a one-line `summary` for the approval screen;
-   `merchant`; `currency`, an ISO 4217 code the deployment supports; `amount` as
-   `{minor_units, currency}`, with `minor_units` a whole number of the currency's minor
-   unit; and `details`, the `label`/`value`/`emphasized` rows the app renders in array
-   order. There is no `amount.display` — the app formats the amount itself. `agent_name` is optional and names your agent on the screen;
-   omit it or send `null` to fall back to the agent key's label. The specifics go in
+   calling. Required fields are `schema_version: 1`; a short specific `action`; an
+   `approval_title` and a one-line `summary` for the approval screen; `merchant`; and
+   `details`, the `label`/`value` rows the app renders in array order (details in
+   `references/terms-guidance.md`). A detail may include boolean `emphasized`; omit it
+   for standard emphasis. For financial actions, include `currency` and `amount` as
+   `{minor_units, currency}`. Omit both for non-financial actions so the app omits the
+   Amount row. There is no `amount.display`; the app formats the amount itself. Every
+   number anywhere in terms must be an integer no greater than 2^53-1. `agent_name` is
+   optional and names your agent on the screen; omit it or send `null` to fall back to
+   the agent key's label. The specifics go in
    `details`: counterparty and resource identifiers, destination and data categories for
    disclosures, scope and duration for permissions.
 2. One request at a time. Poll it; do not file replacements while one is pending.

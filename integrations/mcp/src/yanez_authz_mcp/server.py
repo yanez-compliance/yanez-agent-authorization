@@ -66,15 +66,14 @@ def build_server(settings: Optional[Settings] = None,
 
         `terms` must carry all of the following, or the server answers 422 naming every
         offending field: schema_version, the integer 1; action, approval_title, summary,
-        merchant (non-blank strings); currency, an ISO 4217 code the deployment
-        supports; amount as {minor_units, currency}, with minor_units a whole number of
-        the currency's minor unit (18000 is $180.00 under USD, and ¥18,000 under JPY,
-        which has no minor unit) and currency equal to the top-level one; details as an
-        array of {label, value, emphasized} rows the app renders in order (may be
-        empty). agent_name is optional. Every number anywhere in terms must be an
-        integer no greater than 2^53-1. There is no amount.display: the app formats the
-        amount itself. The approver sees these fields verbatim, they are embedded in the
-        receipt, and the approver's own key signs them."""
+        and merchant (non-blank strings); and details as an array of {label, value}
+        rows the app renders in order (may be empty). A detail may include boolean
+        emphasized; omit it for standard emphasis. Financial actions include currency,
+        an ISO 4217 code the deployment supports, and amount as {minor_units, currency}.
+        Omit both money fields for non-financial actions. Every number anywhere in terms
+        must be an integer no greater than 2^53-1. There is no amount.display: the app
+        formats the amount itself. agent_name is optional. The approver sees these fields
+        verbatim, they are embedded in the receipt, and the approver's own key signs them."""
         try:
             pending = await (await _client()).request_authorization(
                 terms, decision_window_seconds=decision_window_seconds,
