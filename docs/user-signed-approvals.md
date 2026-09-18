@@ -263,13 +263,6 @@ harness:
 
 ## Checking the key against the registry
 
-<div class="callout">
-  <div class="callout-title">Development only</div>
-  <p>This route is live on Development (<code>https://dev3.yanezcompliance.com</code>) and
-  not yet on Test or Production, where it returns <code>404</code>. The helpers below take
-  the key array as an argument, so they work unchanged once the route ships everywhere.</p>
-</div>
-
 An agent can ask which keys the registry holds for its own user, and at which tiers:
 
 ```http
@@ -318,9 +311,6 @@ if (!keyIsRegistered(receipt.userProof.publicKey, receipt.assuranceTier, keys)) 
   // the receipt names a key the registry does not hold at that tier
 }
 ```
-
-Where the route is not deployed, `user_keys()` / `userKeys()` raises
-`FeatureUnavailableError`.
 
 **Read it at verification time.** Keys carry no revocation state, so a cached copy proves
 nothing about the registry today.

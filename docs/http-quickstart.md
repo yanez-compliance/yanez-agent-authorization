@@ -78,7 +78,7 @@ Authorization: Bearer yak_...
 
 `200` → `{"yid": "...", "keys": [{"tier": "high", "public_key": "0x..."}]}`. The YID
 comes from the agent key; there is no YID parameter. `tier` is `null` for a key with no
-recognized tier, and no keys is an empty list. Live on Development only for now.
+recognized tier, and no keys is an empty list.
 
 Use it to check that an approved receipt's `yanez_user_public_key` is registered at its
 `yanez_assurance_tier`, or before asking, to learn that a tier your policy requires has
